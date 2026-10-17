@@ -34,7 +34,19 @@ The scarce resource is **heap**, not flash. So:
   (binary can't go line by line, and buffering a whole mp3 would blow the heap).
 
 ## Files
-Runtime (upload all to the device's flash; compile the `.lua` to `.lc`):
+Repo layout (the device filesystem is flat - `tools/upload.py` uploads every
+file under its bare name, so pages keep referring to `/admin.js`, `login.html`):
+```
+lua/        all Lua: init.lua, config.lua, captive_portal.lua, cp_*.lua, adm_*.lua, ...
+html/       pages: admin.html, admin_login.html, login*.html, portal_*.html
+css/        style.css
+js/         admin.js
+firmware/   NodeMCU images (minimal/ in use, tehybug/, lfs/, 2018 build)
+tools/      upload.py, luac.cross, bugzapper/ (flasher + vendored esptool etc.)
+flash.sh, bugzapper.sh   firmware flashing (CLI / GUI)
+```
+
+Runtime files (all uploaded flat to the device; modules end up as `.lc`):
 ```
 init.lua            boot: 2 s abort window, compile missing .lc (then delete that
                     module's .lua - only .lc stay on the device), then captive_portal
@@ -69,7 +81,7 @@ tools/bugzapper/    BugZapper copy (esptool 2.8, pyserial, nodemcu-uploader vend
 Created at runtime: `portal_config.lua` (admin-saved settings; overrides
 `config.lua`).
 
-## Configure (`config.lua`)
+## Configure (`lua/config.lua`)
 ```lua
 config.portal_ssid           = "Guest-WiFi"
 config.portal_ap_password    = nil              -- WPA2 key (>=8 chars) or nil = open

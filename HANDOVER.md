@@ -51,6 +51,8 @@ Low-heap is the guiding constraint, so:
 - Everything is **`action=`-driven** into a `_GET` table (reference regex).
 
 ## File map (all runtime files upload to flash)
+Repo folders: lua/ (all .lua), html/, css/, js/; tools/upload.py resolves bare
+device names via SRC_DIRS and uploads them flat (device FS has no folders).
 ```
 init.lua            boot: 2 s abort window (boot:unregister()), compile missing
                     .lc on the fresh heap and DELETE the module .lua once its
@@ -153,7 +155,7 @@ flash at 0x0 (e.g. BugZapper / `esptool write_flash -fm dio -fs detect 0x0`),
 then upload the Lua/HTML files (tools/upload.py).
 
 ## Build / run
-1. Edit `config.lua` (set `portal_admin_password`; choose login vs open mode).
+1. Edit `lua/config.lua` (set `portal_admin_password`; choose login vs open mode).
 2. `./flash.sh -e` (firmware, once) then `tools/upload.py` (portal files).
    This uploads all files, runs `compile_all.lua`, and resets.
 3. Join the AP; open `http://192.168.1.1/admin`.

@@ -30,6 +30,18 @@ import tempfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VENDOR = os.path.join(ROOT, "tools", "bugzapper", "vendor")
+# the repo keeps sources in folders; the device filesystem is flat, so every
+# file is uploaded under its bare name (pages reference /admin.js, login.html ...)
+SRC_DIRS = ["lua", "html", "css", "js", "."]
+
+
+def src(name):
+    """Local path of a device file name (searched in SRC_DIRS)."""
+    for d in SRC_DIRS:
+        p = os.path.join(ROOT, d, name)
+        if os.path.exists(p):
+            return p
+    return os.path.join(ROOT, name)
 
 CORE = ["init.lua", "config.lua", "captive_portal.lua", "cp_util.lua", "cp_dns.lua",
         "cp_http.lua", "adm_page.lua", "adm_set.lua", "adm_file.lua",
@@ -90,7 +102,7 @@ def minify(names, tmp):
     try:
         groot = subprocess.run(["npm", "root", "-g"], capture_output=True, text=True).stdout.strip()
         env = dict(os.environ, NODE_PATH=groot)
-        r = subprocess.run(["node", "-e", MINIFY_JS, tmp] + [os.path.join(ROOT, n) for n in names],
+        r = subprocess.run(["node", "-e", MINIFY_JS, tmp] + [src(n) for n in names],
                            env=env, capture_output=True, text=True)
     except OSError as e:
         print("!! luamin skipped (" + str(e) + ") - uploading plain Lua")
@@ -103,11 +115,11 @@ def minify(names, tmp):
 
 def build_lfs(tmp, do_minify=True):
     """Compile LFS_MODS (minified) into tmp/lfs.img with luac.cross."""
-    src = os.path.join(tmp, "lfs_src")
-    os.makedirs(src)
+    lsrc = os.path.join(tmp, "lfs_src")
+    os.makedirs(lsrc)
     names = [m + ".lua" for m in LFS_MODS]
-    small = minify(names, src) if do_minify else set()
-    files = [os.path.join(src, n) if n in small else os.path.join(ROOT, n) for n in names]
+    small = minify(names, lsrc) if do_minify else set()
+    files = [os.path.join(lsrc, n) if n in small else src(n) for n in names]
     img = os.path.join(tmp, "lfs.img")
     r = subprocess.run([LUAC_CROSS, "-f", "-o", img] + files, capture_output=True, text=True)
     if r.returncode != 0:
@@ -118,25 +130,25 @@ def build_lfs(tmp, do_minify=True):
 
 def file_specs(only, tmp, do_minify=True, lfs=False):
     """nodemcu-uploader 'local[:remote]' specs, in upload order."""
-    plain = CORE + sorted(glob.glob(os.path.join(ROOT, "login*.html")) +
-                          glob.glob(os.path.join(ROOT, "portal_*.html")))
+    plain = CORE + sorted(glob.glob(os.path.join(ROOT, "html", "login*.html")) +
+                          glob.glob(os.path.join(ROOT, "html", "portal_*.html")))
     plain = [os.path.basename(f) for f in plain]
     if lfs:   # modules travel inside lfs.img instead
         plain = [n for n in plain if n[:-4] not in LFS_MODS]
-    plain += [f for f in OPTIONAL if os.path.exists(os.path.join(ROOT, f))]
+    plain += [f for f in OPTIONAL if os.path.exists(src(f))]
     plain = [n for n in plain if not only or n in only]
     lua = [n for n in plain if n.endswith(".lua") and n not in NO_MINIFY]
     small = minify(lua, tmp) if do_minify and lua else set()
     specs = []
     for name in plain:
-        specs.append(os.path.join(tmp, name) + ":" + name if name in small else name)
+        specs.append((os.path.join(tmp, name) if name in small else src(name)) + ":" + name)
     for name in GZIPPED:
         if only and name not in only and name + ".gz" not in only:
             continue
         gz = os.path.join(tmp, name + ".gz")
-        with open(os.path.join(ROOT, name), "rb") as src, \
+        with open(src(name), "rb") as fin, \
                 gzip.GzipFile(gz, "wb", compresslevel=9, mtime=0) as dst:
-            dst.write(src.read())
+            dst.write(fin.read())
         specs.append(gz + ":" + name + ".gz")
     if lfs:
         specs.append(build_lfs(tmp, do_minify) + ":lfs.img")
