@@ -166,7 +166,9 @@ function H.start(st, IP)
 
 			-- explicit file (assets). Guests: whitelist only. Admin: any file -
 			local fname = path ~= "/" and U.safe_name(string.gsub(path, "^/", "")) or ""
-			if fname ~= "" and method == "GET" and (isadmin or PUBLIC[fname]) and S.send_file(k, cs, fname) then
+			-- any .mp3 is public too, so captive pages can play their own sounds
+			if fname ~= "" and method == "GET" and (isadmin or PUBLIC[fname] or string.find(fname, "%.mp3$"))
+				and S.send_file(k, cs, fname) then
 				return
 			end
 
