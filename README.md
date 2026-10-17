@@ -98,37 +98,35 @@ BugZapper (flasher + serial monitor, with bundled esptool, pyserial and
 nodemcu-uploader) lives in `tools/bugzapper/`. Plug the board in, then:
 ```sh
 ./flash.sh -e            # 1. erase + flash firmware/minimal/*.bin (once per board)
-tools/upload.py --lfs    # 2. upload pages + lfs.img, load LFS, reboot into the portal
+tools/upload.py          # 2. upload the portal, restart; modules compile at boot
 ```
-Board without auto-reset (you hold FLASH + press reset by hand)? Use
-`./flash.sh --no-reset -e` - esptool's own reset would undo your flash mode.
+- **Board without auto-reset** (you hold FLASH, press reset, release FLASH):
+  use `./flash.sh --no-reset -e` - esptool's own reset would undo flash mode.
+- **Always erase (`-e`) when switching firmware builds** - otherwise the new
+  firmware may fail to format its filesystem.
+- GUI alternative: `./bugzapper.sh` (flash, serial monitor, single-file upload).
 
-**Firmware in use:** `firmware/minimal/` - NodeMCU 2.2.1 built with only the
-7 modules the portal needs (no sensors, TLS or LFS): ~18.6 KB free heap with
-the portal running. Flash it at 0x0 with a full erase (exact command in
-HANDOVER.md), then `tools/upload.py` (normal `.lc` mode, no `--lfs`). Also kept:
-the TeHyBug build (`firmware/tehybug/`), the 2018 build, and the LFS build
-below (tried and reverted).
-
-**LFS firmware (not in use)** (`firmware/lfs/BUILD.txt`): NodeMCU 3.0 release, integer, Lua 5.1,
-modules file/gpio/net/node/tmr/uart/wifi, **64 KB LFS** - the portal's modules
-run from flash (Lua Flash Store), so ~38 KB heap stays free with the portal
-running (vs ~14 KB with .lc files on the old 2018 build, kept in
-`firmware/old/`). `tools/luac.cross` is the matching host compiler that builds
-`lfs.img`; rebuild it together with the firmware (source in ~/dev/nodemcu-firmware,
-built with the marcelstoer/nodemcu-build Docker image). On firmware without LFS,
-use `tools/upload.py` without `--lfs` (modules as .lc, compiled at boot).
-Or use the GUI: `./bugzapper.sh` (Flash tab for the firmware, monitor for the
-boot log; its Lua tab can upload single files too).
 `tools/upload.py` minifies the Lua with **luamin** (`npm i -g luamin`; all
 `.lua` except `config.lua`, ~24 KB -> ~13 KB), sends `admin.html` / `admin.js` /
-`style.css` gzipped, removes stale `.lc` and restarts; `init.lua` recompiles the
-modules on that fresh boot. The device therefore holds minified Lua - the
+`style.css` gzipped, removes stale `.lc` and restarts. On that boot `init.lua`
+compiles each uploaded module and deletes its `.lua` after a good compile (a
+failed compile keeps the source), so the device holds only `.lc` files - the
 readable sources live in this repo. Options: `-p PORT`, `--only FILE...`,
-`--no-minify`, `--no-restart`, `--dry-run`.
+`--no-minify`, `--no-restart`, `--dry-run`, `--lfs` (LFS firmware only).
 
-`init.lua` loads `.lc` if present, else `.lua`, so compiling is optional but
-saves heap.
+### Firmware
+| Folder | Build | Free heap with portal |
+|---|---|---|
+| `firmware/minimal/` **(in use)** | NodeMCU 2.2.1, only file/gpio/net/node/tmr/uart/wifi, integer, no TLS/LFS | ~18.6 KB |
+| `firmware/tehybug/` | TeHyBug custom build (NodeMCU 2.2.0, sensors + TLS); two files at 0x0 and 0x10000 | ~12.7 KB |
+| `firmware/*2018*.bin` | NodeMCU master 2018, 16 modules, float | ~14 KB |
+| `firmware/lfs/` | NodeMCU 3.0 + 64 KB LFS (`tools/upload.py --lfs`, needs `tools/luac.cross`) | ~38 KB, **not used** |
+
+The LFS build was tried and reverted: NodeMCU 3.x changed APIs the portal
+relies on (a failed socket send raises an error; `node.output` passes a pipe,
+not a string). The guards added for that stay in the code and are harmless
+on 2.x. Each folder has a `BUILD.txt` (or see the table) describing how it
+was built (marcelstoer/nodemcu-build Docker image).
 
 ## Use
 1. Join the AP → login form (login mode) or splash (open mode).
