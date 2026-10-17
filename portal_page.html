@@ -1,0 +1,14 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{{SSID}}</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;
+margin:0;display:flex;min-height:100vh;align-items:center;justify-content:center;text-align:center}
+.card{padding:30px}h1{font-size:26px;margin:0 0 8px}p{color:#94a3b8;margin:0 0 20px}
+button{padding:12px 20px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-size:16px;cursor:pointer}</style>
+</head><body>
+<div class="card">
+<h1>Welcome to {{SSID}}</h1>
+<p>You're connected.</p>
+<audio id="a" src="/sound.mp3" autoplay></audio>
+<button onclick="var a=document.getElementById('a');a.play()">&#9654; Play sound</button>
+</div></body></html>

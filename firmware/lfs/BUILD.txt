@@ -1,0 +1,4 @@
+NodeMCU release c8faff2, integer, Lua 5.1, LFS 64 KB
+modules: file gpio net node tmr uart wifi
+built with marcelstoer/nodemcu-build from ~/dev/nodemcu-firmware
+tools/luac.cross = matching host compiler (arm64 macOS)

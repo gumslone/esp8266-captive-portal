@@ -1,0 +1,4 @@
+NodeMCU 2.2.1 (tag 2.2.1-master_20190405, commit 4905381), integer, Lua 5.1
+modules: file gpio net node tmr uart wifi - no sensors, no TLS, no LFS
+built with marcelstoer/nodemcu-build from ~/dev/nodemcu-firmware-2.2.1
+flash: single image at 0x0 (with --erase-all when switching builds)

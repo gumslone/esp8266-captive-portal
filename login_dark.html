@@ -1,0 +1,15 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>{{SSID}}</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;
+display:flex;min-height:100vh;align-items:center;justify-content:center}
+.c{background:#1e293b;padding:26px 24px;border-radius:16px;width:88%;max-width:320px}
+h1{font-size:20px;margin:0 0 4px}p{color:#94a3b8;font-size:13px;margin:0 0 12px}
+input{width:100%;box-sizing:border-box;padding:11px 12px;margin:0 0 12px;border:1px solid #334155;
+border-radius:10px;background:#0f172a;color:#e2e8f0;font-size:15px}
+button{width:100%;padding:12px;border:0;border-radius:10px;background:#38bdf8;color:#0f172a;
+font-size:15px;font-weight:600}.e{color:#f87171}</style></head><body>
+<div class="c"><h1>{{SSID}}</h1><p>Sign in to continue.</p><p class="e">{{ERR}}</p>
+<form method="post" action="/"><input type="hidden" name="action" value="login">
+<input name="u" placeholder="Username" autocomplete="off" autocapitalize="none">
+<input name="p" type="password" placeholder="Password" autocomplete="off">
+<button type="submit">Connect</button></form></div></body></html>

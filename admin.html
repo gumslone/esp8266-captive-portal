@@ -1,0 +1,62 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title>
+<link rel="stylesheet" href="./style.css"></head><body><div class="c">
+<h1>Portal settings</h1><p class="ok" id="sm"></p>
+<form method="get" action="/"><input type="hidden" name="action" value="save_settings">
+<label>Network name (SSID)</label><input name="s" id="s">
+<label>WPA2 key (8+ chars, blank = open)</label><input name="w" id="w">
+<div class="row"><label><input type="checkbox" name="rl" id="rl" value="1"> Require login (uncheck = open splash)</label></div>
+<label>Guest username</label><input name="u" id="u">
+<label>Guest password</label><input name="p" id="p">
+<button type="submit">Save &amp; restart</button></form>
+<p style="font-size:12px;color:#98a2b3">Admin password is set by config.portal_admin_password.</p>
+
+<hr><h2>Captive page</h2>
+<p>Page shown to guests. Any portal_*.html on the device can be chosen; applied live.</p>
+<select id="pg" onchange="document.getElementById('en').value=this.value"></select>
+<button type="button" onclick="setPage('page')">Make active</button>
+<button type="button" onclick="editf(document.getElementById('pg').value)">Edit selected</button>
+<div id="pgm" style="font-size:12px;color:#98a2b3"></div>
+
+<hr><h2>Login form</h2>
+<p>Form shown when login is required. Any login*.html can be chosen; applied live.</p>
+<select id="lg" onchange="document.getElementById('en').value=this.value"></select>
+<button type="button" onclick="setPage('login')">Make active</button>
+<button type="button" onclick="editf(document.getElementById('lg').value)">Edit selected</button>
+<div id="lgm" style="font-size:12px;color:#98a2b3"></div>
+
+<hr><h2>Nearby networks</h2>
+<p>Scans for other Wi-Fi networks (takes a few seconds). Useful to pick a quiet channel.</p>
+<div id="sc"></div>
+<button type="button" onclick="scan()">Scan</button>
+
+<hr><h2>Edit file</h2>
+<p>Text files only. In portal pages, {{SSID}} is replaced with the network name. Saved line by line (no restart).</p>
+<label>File</label><input id="en">
+<button type="button" onclick="loadPage()">Load</button>
+<textarea id="h" placeholder="Press Load, or click edit in the file list"></textarea><div id="pm" style="font-size:12px;color:#98a2b3"></div>
+<button type="button" onclick="savePage()">Save file</button>
+
+<hr><h2>Upload file</h2>
+<p>Any file (e.g. .lua, sound.mp3 for the captive page). Overwrites a file with the same name.</p>
+<input type="file" id="f" onchange="if(this.files[0])document.getElementById('fn').value=this.files[0].name">
+<label>Save as</label><input id="fn" placeholder="file name on device">
+<div id="um" style="font-size:12px;color:#98a2b3"></div>
+<button type="button" onclick="uploadFile()">Upload</button>
+
+<hr><h2>Files</h2><div id="fl">Loading...</div>
+
+<hr><h2>Failed logins</h2>
+<p>Why guest logins failed (no passwords are stored). Capped at ~2 KB.</p>
+<pre id="lf" style="font-size:12px;white-space:pre-wrap"></pre>
+<button type="button" onclick="viewFails()">View</button>
+<button type="button" onclick="clearFails()">Clear</button>
+
+<hr><h2>Command</h2>
+<p>Runs Lua on the device; prefix with = to print a value (e.g. =node.heap()).</p>
+<select id="cs" onchange="if(this.value)document.getElementById('cmd').value=this.value"></select>
+<input id="cmd" value="=node.heap()" onkeydown="if(event.key=='Enter')runCmd()">
+<button type="button" onclick="runCmd()">Run</button>
+<button type="button" onclick="restart()" style="background:#b42318">Restart device</button>
+<div id="msg" style="font-size:12px;color:#98a2b3"></div>
+<script src="./admin.js"></script></div></body></html>
