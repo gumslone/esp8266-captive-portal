@@ -33,8 +33,8 @@ function H.start(st, IP)
 		else return "text/plain" end
 	end
 
-	local CHUNK     = 1024 -- bytes per streamed file piece
-	local MP3_CHUNK = 2048 -- sounds are big: 2x fewer round trips (4 KB was too much heap)
+	local CHUNK     = 1024 -- bytes per streamed file piece (bigger chunks for .mp3
+	                       -- made audio stop loading partway: too much heap)
 	local TPL_PIECE = 1400 -- template piece (~one TCP segment): most pages in 1-2 sends
 
 	-- shared with the adm_*.lua modules
@@ -67,7 +67,6 @@ function H.start(st, IP)
 			(gz and "\r\nContent-Encoding: gzip" or "") ..
 			"\r\nCache-Control: " .. cc .. "\r\nConnection: close\r\n\r\n")
 		cs.stream = gz and (fname .. ".gz") or fname; cs.pos = 0; cs.subs = nil
-		cs.chunk = string.find(fname, "%.mp3$") and MP3_CHUNK or CHUNK
 		return true
 	end
 
@@ -207,9 +206,8 @@ function H.start(st, IP)
 						cs.pos = fd:seek("cur")
 						if n > 0 then chunk = string.gsub(table.concat(t), "{{([%w_]+)}}", cs.subs) end
 					else                                   -- plain/binary asset
-						local size = cs.chunk or CHUNK
-						chunk = fd:read(size)
-						more = chunk ~= nil and #chunk == size
+						chunk = fd:read(CHUNK)
+						more = chunk ~= nil and #chunk == CHUNK
 						if chunk then cs.pos = cs.pos + #chunk end
 					end
 					fd:close()
