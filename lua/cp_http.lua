@@ -19,8 +19,9 @@ function H.start(st, IP)
 
 	-- files a non-admin may fetch directly; everything else (config.lua,
 	-- *.lua, portal_config.lua ...) is NOT served to guests.
+	-- (no captive pages here: they are served through the login gate only)
 	local PUBLIC = { ["style.css"] = true, ["admin.js"] = true,
-		["sound.mp3"] = true, ["favicon.ico"] = true, ["portal_page.html"] = true }
+		["sound.mp3"] = true, ["favicon.ico"] = true }
 
 	local function ctype(name)
 		if string.find(name, "%.css")  then return "text/css"
@@ -112,7 +113,6 @@ function H.start(st, IP)
 			end
 
 			if cs.pend then rq = cs.pend .. rq; cs.pend = nil end
-			node.output(nil)
 			local _, _, method, path, vars = string.find(rq, "([A-Z]+) (/[^?]*)%??(.*) HTTP")
 			if method == nil then _, _, method, path = string.find(rq, "([A-Z]+) (.+) HTTP") end
 			path = path or "/"
@@ -225,7 +225,9 @@ function H.start(st, IP)
 
 		c:on("disconnection", function(k)
 			if cs.up then pcall(function() cs.up.fd:close() end); cs.up = nil end
-			node.output(nil); collectgarbage("collect")
+			-- (no node.output(nil) here: adm_exec restores output itself; resetting
+			-- it from other connections cut off a running command's output)
+			collectgarbage("collect")
 		end)
 	end)
 

@@ -187,7 +187,6 @@ def main():
     ap.add_argument("-p", "--port", default=os.environ.get("ESPTOOL_PORT") or find_port())
     ap.add_argument("-b", "--baud", type=int, default=115200)
     ap.add_argument("--only", nargs="+", metavar="FILE", help="upload only these files")
-    ap.add_argument("--no-compile", action="store_true", help="keep existing .lc files")
     ap.add_argument("--no-minify", action="store_true", help="upload Lua as written (no luamin)")
     ap.add_argument("--lfs", action="store_true",
                     help="put the modules into lfs.img and load it (LFS firmware + tools/luac.cross)")
@@ -218,7 +217,7 @@ def main():
                           [m + ext for m in LFS_MODS for ext in (".lua", ".lc")]))
             # sent directly (nodemcu-uploader's exec is broken on Python 3)
             steps.append(("Loading lfs.img into flash (reboots)", ["@lfs_reload"]))
-        elif not a.no_compile:
+        else:
             # drop old .lc so init.lua recompiles on the next (fresh) boot: big
             # modules can't compile while the portal runs (not enough heap)
             mods = [os.path.splitext(f)[0] + ".lc" for f in uploaded(steps[0][1]) if f.endswith(".lua")

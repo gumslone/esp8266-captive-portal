@@ -54,10 +54,10 @@ Low-heap is the guiding constraint, so:
 Repo folders: lua/ (all .lua), html/, css/, js/; tools/upload.py resolves bare
 device names via SRC_DIRS and uploads them flat (device FS has no folders).
 ```
-init.lua            boot: 2 s abort window (boot:unregister()), compile missing
-                    .lc on the fresh heap and DELETE the module .lua once its
-                    .lc exists (only .lc stay on the device; tools/upload.py
-                    re-uploads sources to change a module), then portal
+init.lua            boot: 2 s abort window (boot:unregister()); any module .lua
+                    on the device is the newest version -> compiled on the
+                    fresh heap; a GOOD compile deletes the .lua, a failed one
+                    removes the partial .lc and keeps the .lua; then portal
 config.lua          settings: SSID, guest creds, admin password, mode
 captive_portal.lua  entry: AP up, then require cp_dns + cp_http
 cp_util.lua         unescape/he/lua_q/safe_name/read_file + load/save_settings

@@ -97,11 +97,11 @@ config.portal_login           = "login.html"       -- active guest login form
 BugZapper (flasher + serial monitor, with bundled esptool, pyserial and
 nodemcu-uploader) lives in `tools/bugzapper/`. Plug the board in, then:
 ```sh
-./flash.sh -e            # 1. erase + flash firmware/nodemcu_*.bin (once per board)
+./flash.sh -e            # 1. erase + flash firmware/minimal/*.bin (once per board)
 tools/upload.py --lfs    # 2. upload pages + lfs.img, load LFS, reboot into the portal
 ```
 Board without auto-reset (you hold FLASH + press reset by hand)? Use
-`./flash.sh --no-reset` - esptool's own reset would undo your flash mode.
+`./flash.sh --no-reset -e` - esptool's own reset would undo your flash mode.
 
 **Firmware in use:** `firmware/minimal/` - NodeMCU 2.2.1 built with only the
 7 modules the portal needs (no sensors, TLS or LFS): ~18.6 KB free heap with
@@ -125,7 +125,7 @@ boot log; its Lua tab can upload single files too).
 `style.css` gzipped, removes stale `.lc` and restarts; `init.lua` recompiles the
 modules on that fresh boot. The device therefore holds minified Lua - the
 readable sources live in this repo. Options: `-p PORT`, `--only FILE...`,
-`--no-minify`, `--no-compile`, `--no-restart`, `--dry-run`.
+`--no-minify`, `--no-restart`, `--dry-run`.
 
 `init.lua` loads `.lc` if present, else `.lua`, so compiling is optional but
 saves heap.

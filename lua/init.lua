@@ -26,18 +26,23 @@ end
 boot = tmr.create()
 boot:alarm(2000, tmr.ALARM_SINGLE, function()
 	boot = nil
-	-- compile modules that have no .lc yet (and aren't in LFS), on a fresh
-	-- boot (most free heap) and before the portal loads: big modules can't
-	-- compile once it runs. Once the .lc exists the .lua is deleted (saves
-	-- flash; tools/upload.py re-uploads sources when a module changes).
+	-- compile modules on a fresh boot (most free heap), before the portal
+	-- loads: big modules can't compile once it runs. A module .lua on the
+	-- device is always the newest version (sources are deleted after a good
+	-- compile), so it is compiled even if an older .lc exists. Only a good
+	-- compile deletes the source; a failed one removes the possibly truncated
+	-- .lc and keeps the .lua (run/require then fall back to it).
 	for _, m in ipairs({ "cp_util", "cp_dns", "cp_http", "captive_portal",
 		"adm_page", "adm_set", "adm_file", "adm_exec", "adm_scan" }) do
 		if not (lfs and type(lfs(m)) == "function") and file.exists(m .. ".lua") then
-			if not file.exists(m .. ".lc") then
-				collectgarbage()
-				print((pcall(node.compile, m .. ".lua") and "compiled " or "COMPILE FAILED ") .. m)
+			collectgarbage()
+			if pcall(node.compile, m .. ".lua") and file.exists(m .. ".lc") then
+				file.remove(m .. ".lua")
+				print("compiled " .. m)
+			else
+				file.remove(m .. ".lc")
+				print("COMPILE FAILED " .. m .. " - keeping the .lua")
 			end
-			if file.exists(m .. ".lc") then file.remove(m .. ".lua") end
 		end
 	end
 	collectgarbage()

@@ -26,6 +26,8 @@ return function(S, x)
 	local msg
 	if s2.ssid == "" or (s2.require_login and s2.password == "") then
 		msg = "Name (and guest password when login is required) cannot be empty."
+	elseif s2.ap_password and #s2.ap_password < 8 then   -- would silently become an open AP
+		msg = "WPA2 key must be at least 8 characters (leave it blank for an open network)."
 	elseif U.save_settings(s2) then
 		msg = "Saved. Restarting&hellip;"
 		tmr.create():alarm(1500, tmr.ALARM_SINGLE, function() node.restart() end)
