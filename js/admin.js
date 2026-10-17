@@ -56,7 +56,9 @@ function flist(){req('/x?action=execute&execute_command='+encodeURIComponent("fo
     h+='<tr><td><a href="/'+fn+'" target="_blank">'+esc(fn)+'</a></td><td>'+esc(sz)+'</td><td>'+a.join(' | ')+'</td></tr>';}
   h+='</table><p>'+n+' file(s)'+(free?', '+esc(free)+' bytes free':'')+'</p>';id('fl').innerHTML=h;
   var names=r.map(function(l){return l.split('\t')[0].trim();});
-  fillSel('pg',names.filter(function(f){return /^portal_.*\.html$/.test(f);}));
+  // portal_x.html.gz (pre-gzipped page) is listed as portal_x.html
+  var pages=names.map(function(f){return f.replace(/\.gz$/,'');}).filter(function(f,i,a){return /^portal_.*\.html$/.test(f)&&a.indexOf(f)==i;});
+  fillSel('pg',pages);
   fillSel('lg',names.filter(function(f){return /^login.*\.html$/.test(f);}));});}
 // captive page / login form pickers: options come from the file list (no extra request)
 function fillSel(sid,names){var s=id(sid),act=s.getAttribute('data-active'),cur=s.value||act;s.innerHTML='';

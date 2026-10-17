@@ -139,6 +139,9 @@ was built (marcelstoer/nodemcu-build Docker image).
    Uploading `x.lua` removes a stale `x.lc` so the new source is what runs.
 4. `{{SSID}}` in the captive page is replaced with the network name.
 5. **Captive page** section: pick any `portal_*.html` and press *Make active*
+   (a pre-gzipped `portal_<name>.html.gz` works too and loads faster - gzip it
+   on your computer, e.g. `gzip -9k portal_x.html`, and upload it under that
+   name; such a page can't use `{{SSID}}`)
    (applied live, remembered across restarts). Add your own design by
    uploading or creating a new `portal_<name>.html`; it appears in the list.
    The **Login form** section works the same for `login*.html`.

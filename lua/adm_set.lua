@@ -4,7 +4,7 @@ return function(S, x)
 	local st, U, k, G = S.st, S.U, x.k, x.G
 	if x.act == "set_page" then
 		local name = U.safe_name(G.name or "")
-		if string.find(name, "%.html$") and file.exists(name) then
+		if string.find(name, "%.html$") and (file.exists(name) or file.exists(name .. ".gz")) then
 			if G.kind == "login" then st.login = name else st.page = name end
 			U.save_settings(st)
 			k:send("HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n")

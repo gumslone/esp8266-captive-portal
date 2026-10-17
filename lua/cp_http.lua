@@ -33,6 +33,10 @@ function H.start(st, IP)
 		else return "text/plain" end
 	end
 
+	local CHUNK     = 1024 -- bytes per streamed file piece
+	local MP3_CHUNK = 4096 -- sounds are big: 4x fewer round trips (~4 KB heap while streaming)
+	local TPL_PIECE = 1400 -- template piece (~one TCP segment): most pages in 1-2 sends
+
 	-- shared with the adm_*.lua modules
 	local S = { st = st, U = U, admin_ok = {} }   -- admin_ok[ip]: admin signed in
 	local HTML = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8" ..
@@ -40,7 +44,7 @@ function H.start(st, IP)
 
 	function S.send_html(k, body) k:send(HTML .. body) end
 
-	-- send an HTML template, STREAMED: the "sent" handler reads ~512 bytes of
+	-- send an HTML template, STREAMED: the "sent" handler reads ~1.4 KB of
 	-- whole lines at a time and substitutes {{TOKENS}} in just that piece, so a
 	-- page never sits in RAM whole (an ESP-01 rebooted rendering admin.html).
 	-- Table replacement inserts values literally and keeps unknown tokens.
@@ -63,13 +67,17 @@ function H.start(st, IP)
 			(gz and "\r\nContent-Encoding: gzip" or "") ..
 			"\r\nCache-Control: " .. cc .. "\r\nConnection: close\r\n\r\n")
 		cs.stream = gz and (fname .. ".gz") or fname; cs.pos = 0; cs.subs = nil
+		cs.chunk = string.find(fname, "%.mp3$") and MP3_CHUNK or CHUNK
 		return true
 	end
 
-	-- the captive page shown to a client: the one the admin made active
+	-- the captive page shown to a client: the one the admin made active. A
+	-- pre-gzipped portal_x.html.gz is sent as-is (smaller, faster; no tokens)
 	local function client_page(k, cs)
-		local pg = file.exists(st.page) and st.page or "portal_page.html"
-		S.send_page(k, cs, pg, { SSID = U.he(st.ssid) })
+		local pg = st.page
+		if not (file.exists(pg) or file.exists(pg .. ".gz")) then pg = "portal_page.html" end
+		if file.exists(pg .. ".gz") then S.send_file(k, cs, pg)
+		else S.send_page(k, cs, pg, { SSID = U.he(st.ssid) }) end
 	end
 	local function login_form(k, cs, err)
 		local lg = file.exists(st.login) and st.login or "login.html"
@@ -90,7 +98,6 @@ function H.start(st, IP)
 		fd:close()
 	end
 
-	local CHUNK = 1024     -- bytes per streamed piece (fewer round trips than 512)
 
 	local srv = net.createServer(net.TCP)
 	srv:listen(80, function(c)
@@ -195,13 +202,14 @@ function H.start(st, IP)
 						repeat
 							l = fd:readline()
 							if l then t[#t + 1] = l; n = n + #l end
-						until not l or n >= 512
+						until not l or n >= TPL_PIECE
 						more = l ~= nil
 						cs.pos = fd:seek("cur")
 						if n > 0 then chunk = string.gsub(table.concat(t), "{{([%w_]+)}}", cs.subs) end
 					else                                   -- plain/binary asset
-						chunk = fd:read(CHUNK)
-						more = chunk ~= nil and #chunk == CHUNK
+						local size = cs.chunk or CHUNK
+						chunk = fd:read(size)
+						more = chunk ~= nil and #chunk == size
 						if chunk then cs.pos = cs.pos + #chunk end
 					end
 					fd:close()
