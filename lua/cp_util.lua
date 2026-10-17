@@ -45,6 +45,7 @@ function U.load_settings()
 		password = "changeme", admin_password = "admin-changeme", require_login = true,
 		page = "portal_page.html",   -- active captive page (admin picks it)
 		login = "login.html",        -- active guest login form (admin picks it)
+		txpower = 82,                -- radio power 1..82 in 0.25 dBm (82 = max range)
 	}
 	if config then
 		s.ssid           = config.portal_ssid           or s.ssid
@@ -55,6 +56,7 @@ function U.load_settings()
 		if config.portal_require_login ~= nil then s.require_login = config.portal_require_login end
 		s.page           = config.portal_page           or s.page
 		s.login          = config.portal_login          or s.login
+		s.txpower        = config.portal_txpower        or s.txpower
 		config = nil                                  -- only read here: free it
 	end
 	if file.exists("portal_config.lua") then
@@ -66,6 +68,7 @@ function U.load_settings()
 			s.ap_password = portal.ap_password
 			s.page        = portal.page     or s.page
 			s.login       = portal.login    or s.login
+			s.txpower     = portal.txpower  or s.txpower
 			if portal.require_login ~= nil then s.require_login = portal.require_login end
 			portal = nil
 		end
@@ -82,6 +85,7 @@ function U.save_settings(s)
 	fd:write("portal.password = " .. U.lua_q(s.password) .. "\n")
 	fd:write("portal.page = " .. U.lua_q(s.page or "portal_page.html") .. "\n")
 	fd:write("portal.login = " .. U.lua_q(s.login or "login.html") .. "\n")
+	fd:write("portal.txpower = " .. (tonumber(s.txpower) or 82) .. "\n")
 	fd:write("portal.require_login = " .. (s.require_login and "true" or "false") .. "\n")
 	if s.ap_password ~= nil and string.len(s.ap_password) >= 8 then
 		fd:write("portal.ap_password = " .. U.lua_q(s.ap_password) .. "\n")

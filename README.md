@@ -91,6 +91,7 @@ config.portal_admin_password = "admin-changeme" -- CHANGE THIS
 config.portal_require_login   = true            -- false = open splash
 config.portal_page            = "portal_page.html" -- active captive page
 config.portal_login           = "login.html"       -- active guest login form
+config.portal_txpower         = 82                 -- signal strength 1..82 (x0.25 dBm)
 ```
 
 ## Flash it (only python3 needed)

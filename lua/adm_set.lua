@@ -22,6 +22,7 @@ return function(S, x)
 		admin_password = st.admin_password,
 		require_login = (G.rl == "1"),
 		page = st.page, login = st.login,
+		txpower = math.max(1, math.min(82, tonumber(G.tx) or st.txpower)),
 	}
 	local msg
 	if s2.ssid == "" or (s2.require_login and s2.password == "") then

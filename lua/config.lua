@@ -9,3 +9,4 @@ config.portal_admin_password = "admin-changeme"  -- ADMIN password (change this!
 config.portal_require_login  = true              -- false = open splash shown immediately
 config.portal_page           = "portal_page.html" -- captive page shown to guests (admin can switch)
 config.portal_login          = "login.html"       -- guest login form (admin can switch)
+config.portal_txpower        = 82                 -- signal strength 1..82 (x0.25 dBm): 82 full, 40 one room

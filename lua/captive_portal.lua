@@ -17,6 +17,7 @@ wifi.setmode(wifi.STATIONAP, false)
 pcall(wifi.sta.autoconnect, 0)
 wifi.nullmodesleep(false)
 wifi.setphymode(wifi.PHYMODE_N)
+if wifi.setmaxtxpower then wifi.setmaxtxpower(st.txpower) end   -- signal strength / range
 
 local cfg = { ssid = st.ssid, save = false }
 if st.ap_password ~= nil and string.len(st.ap_password) >= 8 then
