@@ -34,7 +34,7 @@ function H.start(st, IP)
 	end
 
 	local CHUNK     = 1024 -- bytes per streamed file piece
-	local MP3_CHUNK = 4096 -- sounds are big: 4x fewer round trips (~4 KB heap while streaming)
+	local MP3_CHUNK = 2048 -- sounds are big: 2x fewer round trips (4 KB was too much heap)
 	local TPL_PIECE = 1400 -- template piece (~one TCP segment): most pages in 1-2 sends
 
 	-- shared with the adm_*.lua modules
