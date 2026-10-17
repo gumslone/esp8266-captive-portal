@@ -6,3 +6,5 @@ __pycache__/
 portal_config.lua
 login_fail.txt
 lfs.img
+# local tool state
+.serena/
