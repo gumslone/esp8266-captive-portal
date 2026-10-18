@@ -32,7 +32,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VENDOR = os.path.join(ROOT, "tools", "bugzapper", "vendor")
 # the repo keeps sources in folders; the device filesystem is flat, so every
 # file is uploaded under its bare name (pages reference /admin.js, login.html ...)
-SRC_DIRS = ["lua", "html", "css", "js", "."]
+SRC_DIRS = ["lua", "html", "css", "js", "assets", "."]
 
 
 def src(name):
@@ -46,8 +46,8 @@ def src(name):
 CORE = ["init.lua", "config.lua", "captive_portal.lua", "cp_util.lua", "cp_dns.lua",
         "cp_http.lua", "adm_page.lua", "adm_set.lua", "adm_file.lua",
         "adm_exec.lua", "adm_scan.lua", "admin_login.html"]
-OPTIONAL = ["reset_button.lua", "sound.mp3"]
-GZIPPED = ["admin.html", "admin.js", "style.css"]
+OPTIONAL = ["reset_button.lua", "sound.mp3", "audio.mp3"]
+GZIPPED = ["admin.html", "admin.js", "style.css", "portal_war.html"]
 NO_MINIFY = ["config.lua"]       # kept readable: settings you edit by hand
 # --lfs: these modules go into lfs.img (run from flash) instead of .lua/.lc files
 LFS_MODS = ["cp_util", "cp_dns", "cp_http", "captive_portal",
@@ -132,7 +132,7 @@ def file_specs(only, tmp, do_minify=True, lfs=False):
     """nodemcu-uploader 'local[:remote]' specs, in upload order."""
     plain = CORE + sorted(glob.glob(os.path.join(ROOT, "html", "login*.html")) +
                           glob.glob(os.path.join(ROOT, "html", "portal_*.html")))
-    plain = [os.path.basename(f) for f in plain]
+    plain = [os.path.basename(f) for f in plain if os.path.basename(f) not in GZIPPED]
     if lfs:   # modules travel inside lfs.img instead
         plain = [n for n in plain if n[:-4] not in LFS_MODS]
     plain += [f for f in OPTIONAL if os.path.exists(src(f))]

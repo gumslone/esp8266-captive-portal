@@ -62,8 +62,10 @@ admin.html          admin dashboard (static, sent gzipped; admin.js fills in val
 admin.js            admin dashboard logic (streamed asset)
 style.css           admin stylesheet (streamed asset)
 portal_page.html    default captive page shown to clients (editable; {{SSID}} token)
-portal_*.html       more captive page designs: minimal, info, event, offline;
-                    the admin picks the active one (Captive page section)
+portal_*.html       more captive page designs: minimal, info, event, offline, war;
+                    the admin picks the active one (Captive page section).
+                    portal_war.html is uploaded gzipped (portal_war.html.gz) and
+                    plays assets/audio.mp3 (uploaded as audio.mp3)
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)
 ```
