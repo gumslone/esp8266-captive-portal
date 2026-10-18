@@ -171,8 +171,10 @@ runs before every guest login check. It can read `_login.ip` and
 `_login.user`, and refuse the attempt with `_login.block = true` (plus an
 optional `_login.msg` shown on the form). It never sees the password. A broken
 hook is only logged; logins keep working. See `examples/login_precheck.lua`
-(blocks some usernames, max 5 attempts per IP per minute). Delete the file to
-disable it.
+(blocks some usernames, max 5 attempts per IP per minute) and
+`examples/login_precheck_log.lua` (logs IP + username of each attempt to
+`login_log.txt`, capped at ~4 KB). Only one hook is active at a time - upload
+the one you want as `login_precheck.lua`; delete it to disable.
 
 ### Editing the login forms
 `login.html` and `admin_login.html` can be edited freely (layout, text, style).
