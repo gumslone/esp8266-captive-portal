@@ -4,7 +4,6 @@ function req(u,cb){var x=new XMLHttpRequest();x.onreadystatechange=function(){if
 function exec(cmd,cb){req('/x?action=execute&execute_command='+encodeURIComponent(cmd)+'&rnd='+Math.random(),function(st,t){id('msg').innerHTML='<pre>'+esc(t)+'</pre>';if(cb)cb(t);});}
 function execq(cmd,cb){req('/x?action=execute&execute_command='+encodeURIComponent(cmd)+'&rnd='+Math.random(),function(st,t){cb(t);});}
 function runf(n){if(confirm('Execute '+n+'?'))exec("=pcall(function() dofile('"+n+"') end)");}
-function compf(n){exec("=node.compile('"+n+"')",flist);}
 function viewFails(){id('lf').textContent='Loading...';
   execq("local f=file.open('login_fail.txt','r') if f then print(f:read(2200) or '') f:close() else print('(no failed logins)') end",
     function(t){id('lf').textContent=(t||'').trim()||'(no failed logins)';});}
@@ -20,7 +19,6 @@ var CMDS=[['Common commands...',''],
   ['AP IP, mask, gateway','=wifi.ap.getip()'],
   ['Connected clients (MAC, IP)','for m,i in pairs(wifi.ap.getclient()) do print(m,i) end'],
   ['Free memory now','collectgarbage() print(node.heap())'],
-  ['Compile all modules','dofile("compile_all.lua")'],
   ['Clear saved settings (then restart)','file.remove("portal_config.lua")']];
 function fillCmds(){var s=id('cs');for(var i=0;i<CMDS.length;i++){var o=document.createElement('option');o.text=CMDS[i][0];o.value=CMDS[i][1];s.add(o);}}
 fillCmds();
@@ -50,7 +48,6 @@ function flist(){req('/x?action=execute&execute_command='+encodeURIComponent("fo
     var fn=p[0].replace(/\r/,'').trim(),sz=p[1].replace(/\r/,'').trim();if(!fn)continue;
     if(fn=='#'){free=sz;continue;}n++;var a=[];
     if(!/\.(lc|mp3|png|ico|gz)$/.test(fn))a.push(lnk('editf',fn,'edit'));
-    if(/\.lua$/.test(fn))a.push(lnk('compf',fn,'compile'));
     if(/\.(lua|lc)$/.test(fn))a.push(lnk('runf',fn,'execute'));
     a.push(lnk('renf',fn,'rename'));a.push(lnk('delf',fn,'delete'));
     h+='<tr><td><a href="/'+fn+'" target="_blank">'+esc(fn)+'</a></td><td>'+esc(sz)+'</td><td>'+a.join(' | ')+'</td></tr>';}

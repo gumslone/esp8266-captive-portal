@@ -10,6 +10,13 @@
 local U = require("cp_util")
 local H = {}
 
+-- OS connectivity-check URLs -> the reply that means "internet works"
+local APPLE = "<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>"
+local PROBE = { ["/hotspot-detect.html"] = APPLE, ["/library/test/success.html"] = APPLE,
+	["/generate_204"] = 204, ["/gen_204"] = 204,                        -- Android / Chrome
+	["/connecttest.txt"] = "Microsoft Connect Test", ["/ncsi.txt"] = "Microsoft NCSI",
+	["/success.txt"] = "success\n" }                                    -- Firefox
+
 -- admin action -> module that handles it
 local ADMIN_MOD = { admin_login = "adm_page", save_settings = "adm_set", set_page = "adm_set",
 	page_append = "adm_file", execute = "adm_exec", scan = "adm_scan", settings = "adm_page" }
@@ -162,6 +169,7 @@ function H.start(st, IP)
 				if file.exists("login_precheck.lua") then dofile("login_precheck.lua") end
 				if u == st.user and p == st.password then
 					if ip then allowed[ip] = true end
+					if portal_blink then portal_blink() end
 					client_page(k, cs)
 				else
 					log_fail(rq, ip, u, p)
@@ -182,6 +190,15 @@ function H.start(st, IP)
 			if path == "/favicon.ico" then
 				k:send("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n")
 				return
+			end
+
+			-- logged-in guest: answer the OS connectivity checks with "online",
+			-- so the phone closes its sign-in sheet (before login they get the
+			-- portal/login page, which is what makes the sheet appear)
+			if st.require_login and ip and allowed[ip] then
+				local ok = PROBE[path]
+				if ok == 204 then k:send("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n") return end
+				if ok then S.send_html(k, ok) return end
 			end
 
 			-- "/" and anything else (incl. OS captive-probe URLs) --------------

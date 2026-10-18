@@ -45,7 +45,7 @@ def src(name):
 
 CORE = ["init.lua", "config.lua", "captive_portal.lua", "cp_util.lua", "cp_dns.lua",
         "cp_http.lua", "adm_page.lua", "adm_set.lua", "adm_file.lua",
-        "adm_exec.lua", "adm_scan.lua", "compile_all.lua", "admin_login.html"]
+        "adm_exec.lua", "adm_scan.lua", "admin_login.html"]
 OPTIONAL = ["reset_button.lua", "sound.mp3"]
 GZIPPED = ["admin.html", "admin.js", "style.css"]
 NO_MINIFY = ["config.lua"]       # kept readable: settings you edit by hand
@@ -204,7 +204,7 @@ def main():
     env = dict(os.environ, PYTHONPATH=VENDOR + os.pathsep + os.environ.get("PYTHONPATH", ""))
     base = [sys.executable, "-c", BOOTSTRAP, "--port", a.port or "PORT",
             "--baud", str(a.baud), "--start_baud", str(a.baud),
-            "--timeout", "20"]   # compile_all.lua can exceed the 5 s default on ESP-01
+            "--timeout", "20"]   # slow flash ops (e.g. big files) can exceed the 5 s default
 
     with tempfile.TemporaryDirectory() as tmp:
         steps = [("Uploading", ["upload"] + file_specs(a.only, tmp, not a.no_minify, a.lfs))]
@@ -221,7 +221,7 @@ def main():
             # drop old .lc so init.lua recompiles on the next (fresh) boot: big
             # modules can't compile while the portal runs (not enough heap)
             mods = [os.path.splitext(f)[0] + ".lc" for f in uploaded(steps[0][1]) if f.endswith(".lua")
-                    and f not in ("init.lua", "config.lua", "compile_all.lua", "reset_button.lua")]
+                    and f not in ("init.lua", "config.lua", "reset_button.lua")]
             if mods:
                 steps.append(("Removing old .lc (recompiled at boot)", ["file", "remove"] + mods))
         if not a.no_restart and not a.lfs:

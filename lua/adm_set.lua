@@ -19,7 +19,7 @@ return function(S, x)
 		ap_password = (G.w and #G.w > 0) and G.w or nil,
 		user = G.u or st.user,
 		password = G.p or st.password,
-		admin_password = st.admin_password,
+		admin_password = (G.np and #G.np > 0) and G.np or st.admin_password,   -- blank = keep
 		require_login = (G.rl == "1"),
 		page = st.page, login = st.login,
 		txpower = math.max(1, math.min(82, tonumber(G.tx) or st.txpower)),
@@ -27,6 +27,8 @@ return function(S, x)
 	local msg
 	if s2.ssid == "" or (s2.require_login and s2.password == "") then
 		msg = "Name (and guest password when login is required) cannot be empty."
+	elseif G.np and #G.np > 0 and #G.np < 6 then
+		msg = "New admin password must be at least 6 characters (leave it blank to keep the current one)."
 	elseif s2.ap_password and #s2.ap_password < 8 then   -- would silently become an open AP
 		msg = "WPA2 key must be at least 8 characters (leave it blank for an open network)."
 	elseif U.save_settings(s2) then

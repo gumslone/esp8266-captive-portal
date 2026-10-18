@@ -10,3 +10,4 @@ config.portal_require_login  = true              -- false = open splash shown im
 config.portal_page           = "portal_page.html" -- captive page shown to guests (admin can switch)
 config.portal_login          = "login.html"       -- guest login form (admin can switch)
 config.portal_txpower        = 82                 -- signal strength 1..82 (x0.25 dBm): 82 full, 40 one room
+config.portal_led            = 4                  -- status LED pin (4 = D4/GPIO2 on-board LED), false = off

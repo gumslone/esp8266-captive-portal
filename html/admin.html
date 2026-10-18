@@ -2,17 +2,18 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin</title>
 <link rel="stylesheet" href="./style.css"></head><body><div class="c">
 <h1>Portal settings</h1><p class="ok" id="sm"></p>
-<form method="get" action="/"><input type="hidden" name="action" value="save_settings">
+<form method="post" action="/"><input type="hidden" name="action" value="save_settings">
 <label>Network name (SSID)</label><input name="s" id="s">
 <label>WPA2 key (8+ chars, blank = open)</label><input name="w" id="w">
 <div class="row"><label><input type="checkbox" name="rl" id="rl" value="1"> Require login (uncheck = open splash)</label></div>
 <label>Guest username</label><input name="u" id="u">
 <label>Guest password</label><input name="p" id="p">
+<label>New admin password (blank = keep current)</label><input name="np" type="password" autocomplete="new-password">
 <label>Signal strength (range)</label><select name="tx" id="tx">
 <option value="82">Full (~20 dBm)</option><option value="60">Medium (15 dBm)</option>
 <option value="40">One room (10 dBm)</option><option value="20">Very short (5 dBm)</option></select>
 <button type="submit">Save &amp; restart</button></form>
-<p style="font-size:12px;color:#98a2b3">Admin password is set by config.portal_admin_password.</p>
+<p style="font-size:12px;color:#98a2b3">Forgot the admin password? The FLASH-button reset (or deleting portal_config.lua) goes back to config.portal_admin_password.</p>
 
 <hr><h2>Captive page</h2>
 <p>Page shown to guests. Any portal_*.html on the device can be chosen; applied live.</p>
@@ -39,6 +40,11 @@
 <button type="button" onclick="loadPage()">Load</button>
 <textarea id="h" placeholder="Press Load, or click edit in the file list"></textarea><div id="pm" style="font-size:12px;color:#98a2b3"></div>
 <button type="button" onclick="savePage()">Save file</button>
+
+<hr><h2>Backup</h2>
+<p>Settings saved on this page (incl. the admin password) live in portal_config.lua.
+<a href="/portal_config.lua" download="portal_config.lua">Download settings</a> to keep a copy.
+To restore (e.g. after re-flashing): upload the file below as <b>portal_config.lua</b>, then restart.</p>
 
 <hr><h2>Upload file</h2>
 <p>Any file (e.g. .lua, sound.mp3 for the captive page). Overwrites a file with the same name.</p>

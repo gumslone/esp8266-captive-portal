@@ -27,6 +27,17 @@ end
 wifi.ap.config(cfg)
 wifi.ap.setip({ ip = IP, netmask = "255.255.255.0", gateway = IP })
 
+-- status LED (active low): short blink when a phone joins and on guest login
+if st.led then
+	local pin = st.led
+	gpio.mode(pin, gpio.OUTPUT); gpio.write(pin, gpio.HIGH)
+	function portal_blink()
+		gpio.write(pin, gpio.LOW)
+		tmr.create():alarm(80, tmr.ALARM_SINGLE, function() gpio.write(pin, gpio.HIGH) end)
+	end
+	if wifi.eventmon then wifi.eventmon.register(wifi.eventmon.AP_STACONNECTED, portal_blink) end
+end
+
 require("cp_dns").start(IP)
 require("cp_http").start(st, IP)
 

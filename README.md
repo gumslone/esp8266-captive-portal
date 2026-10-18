@@ -70,7 +70,6 @@ login_*.html        more guest login designs: minimal, dark, terms (checkbox);
 
 Optional / tooling:
 ```
-compile_all.lua     run once on the device to compile modules to .lc (saves heap)
 reset_button.lua    press RST, then hold FLASH (GPIO0/D3) right after, to clear saved settings
 flash.sh            flash the NodeMCU firmware (wraps tools/bugzapper/flash.sh)
 bugzapper.sh        BugZapper GUI: flash + serial monitor + Lua upload tab
@@ -92,6 +91,7 @@ config.portal_require_login   = true            -- false = open splash
 config.portal_page            = "portal_page.html" -- active captive page
 config.portal_login           = "login.html"       -- active guest login form
 config.portal_txpower         = 82                 -- signal strength 1..82 (x0.25 dBm)
+config.portal_led             = 4                  -- status LED pin (D4/GPIO2), false = off
 ```
 
 ## Flash it (only python3 needed)
@@ -135,7 +135,7 @@ was built (marcelstoer/nodemcu-build Docker image).
 3. Change settings (Save & restart), edit the captive page (Save page — applied
    live), upload any file under a name you choose (`.lua`, `sound.mp3`, ...),
    or manage files (list with free space, view, edit text files in place,
-   rename, run, compile `.lua`, delete). A Command box runs any Lua line
+   rename, run, delete). A Command box runs any Lua line
    (e.g. `=node.heap()`), and a Restart button reboots the device.
    Uploading `x.lua` removes a stale `x.lc` so the new source is what runs.
 4. `{{SSID}}` in the captive page is replaced with the network name.
@@ -149,6 +149,14 @@ was built (marcelstoer/nodemcu-build Docker image).
 6. **Nearby networks**: *Scan* lists other Wi-Fi networks (SSID, signal,
    channel, security) and highlights this portal's channel, to help pick a
    quiet one.
+7. **Admin password** can be changed on the settings form (blank = keep). It is
+   saved in `portal_config.lua`; the FLASH-button reset falls back to
+   `config.portal_admin_password`. **Backup**: download `portal_config.lua` from
+   the admin page; restore by uploading it under that name and restarting.
+
+After a guest logs in, the portal answers the phone's connectivity checks
+(iOS/macOS, Android, Windows, Firefox) with "online", so the sign-in sheet
+closes by itself. The status LED blinks when a phone joins and on guest login.
 
 ### Editing the login forms
 `login.html` and `admin_login.html` can be edited freely (layout, text, style).
