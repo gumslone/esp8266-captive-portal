@@ -1,0 +1,7 @@
+NodeMCU 2.2.1 (tag 2.2.1-master_20190405), integer, Lua 5.1
+modules: file gpio net node tmr uart wifi ws2812
+= the minimal build + ws2812, PATCHED with ws2812.write_pin (see firmware/patches/)
+so a WS2812B/SK6812 data line can be on any GPIO, not just GPIO2.
+built with marcelstoer/nodemcu-build from ~/dev/nodemcu-firmware-2.2.1
+flash: single image at 0x0, full erase when switching builds; ESP8285 needs -fm dout
+MicroBug board: config.portal_led_type="ws2812", portal_led=6 (GPIO12), portal_led_power=2 (GPIO4)

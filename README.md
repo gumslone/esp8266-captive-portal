@@ -123,6 +123,7 @@ readable sources live in this repo. Options: `-p PORT`, `--only FILE...`,
 |---|---|---|
 | `firmware/minimal/` **(in use)** | NodeMCU 2.2.1, only file/gpio/net/node/tmr/uart/wifi, integer, no TLS/LFS | ~18.6 KB |
 | `firmware/minimal-ws2812/` | minimal + `ws2812` module, for a WS2812B status LED (`portal_led_type = "ws2812"`) | not measured yet |
+| `firmware/minimal-ws2812-anypin/` | minimal + **patched** `ws2812` (`write_pin`): WS2812B/SK6812 on any data pin (e.g. GPIO12). See `firmware/patches/` | not measured yet |
 | `firmware/tehybug/` | TeHyBug custom build (NodeMCU 2.2.0, sensors + TLS); two files at 0x0 and 0x10000 | ~12.7 KB |
 | `firmware/*2018*.bin` | NodeMCU master 2018, 16 modules, float | ~14 KB |
 | `firmware/lfs/` | NodeMCU 3.0 + 64 KB LFS (`tools/upload.py --lfs`, needs `tools/luac.cross`) | ~38 KB, **not used** |
