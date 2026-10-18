@@ -3,6 +3,9 @@
 --
 -- It can read:   _login.ip    client IP, e.g. "192.168.1.3"
 --                _login.user  the username that was entered
+--                _login.get   ALL submitted form fields, e.g. _login.get.code
+--                             (the password is _login.get.p - don't store it;
+--                              this project does not record submitted passwords)
 -- It may set:    _login.block = true      refuse this attempt
 --                _login.msg   = "..."     message shown on the login form
 -- It runs fresh on each attempt, so anything it must remember between
@@ -16,7 +19,16 @@ if BLOCKED_USERS[_login.user] then
 	return
 end
 
--- 2. at most 5 attempts per IP per 60 seconds
+-- 2. require an extra form field. Add  <input name="code">  to the login page,
+--    and only allow the login when it matches. Reads it from _login.get.
+local REQUIRED_CODE = "guest2024"
+if (_login.get.code or "") ~= REQUIRED_CODE then
+	_login.block = true
+	_login.msg = "Enter the correct access code."
+	return
+end
+
+-- 3. at most 5 attempts per IP per 60 seconds
 local MAX, WINDOW = 5, 60
 precheck_state = precheck_state or {}
 local now = tmr.time()
