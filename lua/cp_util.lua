@@ -59,6 +59,9 @@ function U.load_settings()
 		s.login          = config.portal_login          or s.login
 		s.txpower        = config.portal_txpower        or s.txpower
 		if config.portal_led ~= nil then s.led = config.portal_led end
+		s.led_type  = config.portal_led_type or "gpio"
+		s.led_low   = config.portal_led_active_low ~= false
+		s.led_color = config.portal_led_color
 		config = nil                                  -- only read here: free it
 	end
 	if file.exists("portal_config.lua") then

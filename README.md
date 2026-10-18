@@ -91,7 +91,10 @@ config.portal_require_login   = true            -- false = open splash
 config.portal_page            = "portal_page.html" -- active captive page
 config.portal_login           = "login.html"       -- active guest login form
 config.portal_txpower         = 82                 -- signal strength 1..82 (x0.25 dBm)
-config.portal_led             = 4                  -- status LED pin (D4/GPIO2), false = off
+config.portal_led             = 4                  -- status LED pin: 4 = D4/GPIO2, 10 = TX (ESP-01), false = off
+config.portal_led_type        = "gpio"             -- or "ws2812" (WS2812B on D4; needs the ws2812 module)
+config.portal_led_active_low  = true               -- gpio LED lights on LOW
+config.portal_led_color       = { 0, 40, 0 }       -- ws2812 colour R, G, B
 ```
 
 ## Flash it (only python3 needed)
