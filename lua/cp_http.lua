@@ -171,8 +171,13 @@ function H.start(st, IP)
 				if file.exists("login_precheck.lua") then
 					_login = { ip = ip, user = u, get = G }
 					local ok, err = pcall(dofile, "login_precheck.lua")
+					local hook = _login
 					_login = nil
-					if not ok then print("login_precheck: " .. tostring(err)) end
+					if not ok then print("login_precheck: " .. tostring(err))
+					elseif hook.block then
+						login_form(k, cs, hook.msg or "Login not allowed right now.")
+						return
+					end
 				end
 				if u == st.user and p == st.password then
 					if ip then allowed[ip] = true end
