@@ -46,12 +46,14 @@ function flist(){req('/x?action=execute&execute_command='+encodeURIComponent("fo
   var r=(t||'').split('\n'),h='<table><tr><th>File</th><th>Size</th><th></th></tr>',n=0,free='';
   for(var i=0;i<r.length;i++){var p=r[i].split('\t');if(p.length<2)continue;
     var fn=p[0].replace(/\r/,'').trim(),sz=p[1].replace(/\r/,'').trim();if(!fn)continue;
-    if(fn=='#'){free=sz;continue;}n++;var a=[];
-    if(!/\.(lc|mp3|png|ico|gz)$/.test(fn))a.push(lnk('editf',fn,'edit'));
+    if(fn=='#'){free=sz;continue;}n++;var a=[],ed=!/\.(lc|mp3|png|ico|gz)$/.test(fn);
+    if(ed)a.push(lnk('editf',fn,'edit'));
     if(/\.(lua|lc)$/.test(fn))a.push(lnk('runf',fn,'execute'));
     a.push('<a href="/'+encodeURIComponent(fn)+'" download="'+esc(fn)+'">download</a>');
     a.push(lnk('renf',fn,'rename'));a.push(lnk('delf',fn,'delete'));
-    h+='<tr><td><a href="/'+fn+'" target="_blank">'+esc(fn)+'</a></td><td>'+esc(sz)+'</td><td>'+a.join(' | ')+'</td></tr>';}
+    // click the name: editable files open in the editor, binary files in a new tab
+    var nm=ed?lnk('editf',fn,esc(fn)):'<a href="/'+fn+'" target="_blank">'+esc(fn)+'</a>';
+    h+='<tr><td>'+nm+'</td><td>'+esc(sz)+'</td><td>'+a.join(' | ')+'</td></tr>';}
   h+='</table><p>'+n+' file(s)'+(free?', '+esc(free)+' bytes free':'')+'</p>';id('fl').innerHTML=h;
   var names=r.map(function(l){return l.split('\t')[0].trim();});
   // portal_x.html.gz (pre-gzipped page) is listed as portal_x.html
