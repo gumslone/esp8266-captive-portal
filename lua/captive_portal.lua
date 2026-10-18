@@ -35,12 +35,14 @@ local function led_setup()
 		local c = st.led_color or { 0, 40, 0 }
 		local lit, dark = string.char(c[2], c[1], c[3]), string.char(0, 0, 0)   -- GRB order
 		local dpin = st.led                    -- data pin (NodeMCU index)
-		if st.led_power then                   -- optional pin that powers the LED
-			gpio.mode(st.led_power, gpio.OUTPUT); gpio.write(st.led_power, gpio.HIGH)
-		end
-		if ws2812.write_pin then               -- patched firmware: LED data on any pin
+		local pwr = st.led_power               -- optional pin that powers the LED
+		if pwr then gpio.mode(pwr, gpio.OUTPUT); gpio.write(pwr, gpio.HIGH) end  -- keep powered
+		if ws2812.write_pin then               -- patched firmware: data on any pin.
+			-- a single bit-banged frame can glitch while WiFi runs (interrupts
+			-- stretch the pulses), which most hurts the all-zero "off" frame -
+			-- send "off" a few times so a clean frame lands.
 			on  = function() ws2812.write_pin(dpin, lit) end
-			off = function() ws2812.write_pin(dpin, dark) end
+			off = function() for _ = 1, 3 do ws2812.write_pin(dpin, dark) end end
 		else                                   -- stock module: UART, data fixed to D4/GPIO2
 			if dpin ~= 4 then print("LED: this firmware drives ws2812 on D4/GPIO2 only") end
 			ws2812.init()
