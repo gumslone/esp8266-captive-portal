@@ -1,0 +1,73 @@
+diff --git a/app/modules/ws2812.c b/app/modules/ws2812.c
+index 3ca69c5..4aacc1e 100644
+--- a/app/modules/ws2812.c
++++ b/app/modules/ws2812.c
+@@ -10,6 +10,7 @@
+ #include "osapi.h"
+ 
+ #include "ws2812.h"
++#include "pin_map.h"
+ 
+ #define CANARY_VALUE 0x32383132
+ #define MODE_SINGLE  0
+@@ -611,11 +612,60 @@ static const LUA_REG_TYPE ws2812_buffer_map[] =
+ };
+ 
+ 
++
++// --- NON-UART variant: bit-bang WS2812B on ANY GPIO pin ----------------------
++// The stock ws2812.write() streams via UART1, which is wired to GPIO2 only.
++// Some boards route the LED data to another pin (e.g. GPIO12), so this sends
++// the same GRB data by cycle-accurate bit-banging, like the tm1829 driver.
++static inline uint32_t _ws_getCycleCount(void) {
++  uint32_t ccount;
++  __asm__ __volatile__("rsr %0,ccount":"=a" (ccount));
++  return ccount;
++}
++
++static void ICACHE_RAM_ATTR ws2812_write_pin_data(uint8_t gpio, const uint8_t *px, uint32_t len) {
++  const uint32_t t0h = (system_get_cpu_freq() * 10) / 28;   // ~0.35us high for a 0
++  const uint32_t t1h = (system_get_cpu_freq() * 10) / 14;   // ~0.70us high for a 1
++  const uint32_t ttot = (system_get_cpu_freq() * 10) / 8;   // ~1.25us per bit
++  const uint32_t mask = 1 << gpio;
++  const uint8_t *end = px + len;
++
++  ets_intr_lock();
++  while (px != end) {
++    register uint8_t pixel = *px++;
++    register int i;
++    for (i = 7; i >= 0; i--) {
++      register uint32_t th = ((pixel >> i) & 1) ? t1h : t0h;
++      register uint32_t t = _ws_getCycleCount();
++      GPIO_REG_WRITE(GPIO_OUT_W1TS_ADDRESS, mask);         // pin high
++      while (_ws_getCycleCount() - t < th);
++      GPIO_REG_WRITE(GPIO_OUT_W1TC_ADDRESS, mask);         // pin low
++      while (_ws_getCycleCount() - t < ttot);
++    }
++  }
++  ets_intr_unlock();
++}
++
++// Lua: ws2812.write_pin(pin, "GRB...")   pin = NodeMCU pin index (1..12)
++static int ICACHE_FLASH_ATTR ws2812_write_pin(lua_State* L) {
++  const uint8_t pin = luaL_checkinteger(L, 1);
++  size_t length;
++  const char *data = luaL_checklstring(L, 2, &length);
++  luaL_argcheck(L, platform_gpio_exists(pin), 1, "invalid pin");
++
++  platform_gpio_mode(pin, PLATFORM_GPIO_OUTPUT, PLATFORM_GPIO_FLOAT);
++  platform_gpio_write(pin, 0);
++  ws2812_write_pin_data(pin_num[pin], (const uint8_t*) data, length);
++  os_delay_us(300);   // latch / reset
++  return 0;
++}
++
+ static const LUA_REG_TYPE ws2812_map[] =
+ {
+   { LSTRKEY( "init" ),           LFUNCVAL( ws2812_init )},
+   { LSTRKEY( "newBuffer" ),      LFUNCVAL( ws2812_new_buffer )},
+   { LSTRKEY( "write" ),          LFUNCVAL( ws2812_write )},
++  { LSTRKEY( "write_pin" ),      LFUNCVAL( ws2812_write_pin )},
+   { LSTRKEY( "FADE_IN" ),        LNUMVAL( FADE_IN ) },
+   { LSTRKEY( "FADE_OUT" ),       LNUMVAL( FADE_OUT ) },
+   { LSTRKEY( "MODE_SINGLE" ),    LNUMVAL( MODE_SINGLE ) },

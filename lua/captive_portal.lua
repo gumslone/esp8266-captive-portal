@@ -30,12 +30,22 @@ wifi.ap.setip({ ip = IP, netmask = "255.255.255.0", gateway = IP })
 -- status LED: short blink when a phone joins and on guest login (see config.lua)
 local function led_setup()
 	local on, off
-	if st.led_type == "ws2812" then            -- WS2812B: ws2812 module, always D4/GPIO2
+	if st.led_type == "ws2812" then            -- WS2812B / SK6812
 		if not ws2812 then print("LED: no ws2812 module in this firmware - LED off") return end
 		local c = st.led_color or { 0, 40, 0 }
-		ws2812.init()
 		local lit, dark = string.char(c[2], c[1], c[3]), string.char(0, 0, 0)   -- GRB order
-		on, off = function() ws2812.write(lit) end, function() ws2812.write(dark) end
+		local dpin = st.led                    -- data pin (NodeMCU index)
+		if st.led_power then                   -- optional pin that powers the LED
+			gpio.mode(st.led_power, gpio.OUTPUT); gpio.write(st.led_power, gpio.HIGH)
+		end
+		if ws2812.write_pin then               -- patched firmware: LED data on any pin
+			on  = function() ws2812.write_pin(dpin, lit) end
+			off = function() ws2812.write_pin(dpin, dark) end
+		else                                   -- stock module: UART, data fixed to D4/GPIO2
+			if dpin ~= 4 then print("LED: this firmware drives ws2812 on D4/GPIO2 only") end
+			ws2812.init()
+			on, off = function() ws2812.write(lit) end, function() ws2812.write(dark) end
+		end
 	elseif st.led then                         -- plain LED on a GPIO pin
 		local pin = st.led
 		if pin == 10 then print("LED on TX/GPIO1: serial console output stops now") end

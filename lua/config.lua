@@ -10,12 +10,14 @@ config.portal_require_login  = true              -- false = open splash shown im
 config.portal_page           = "portal_page.html" -- captive page shown to guests (admin can switch)
 config.portal_login          = "login.html"       -- guest login form (admin can switch)
 config.portal_txpower        = 82                 -- signal strength 1..82 (x0.25 dBm): 82 full, 40 one room
--- status LED: blinks when a phone joins and on guest login
-config.portal_led            = 4      -- pin: 4 = D4/GPIO2 (NodeMCU/ESP-12/ESP8285 blue LED),
-                                      --      10 = TX/GPIO1 (ESP-01 blue LED - this DISABLES the
-                                      --      serial console while the portal runs; to upload,
-                                      --      stop it in the 2 s boot window), false = no LED
-config.portal_led_type       = "gpio" -- "gpio", or "ws2812" for a WS2812B on D4/GPIO2
-                                      -- (needs the ws2812 firmware module)
-config.portal_led_active_low = true   -- gpio: on-board LEDs light when the pin is LOW
+-- status LED: blinks when a phone joins and on guest login.
+-- pins are NodeMCU indices: 4 = D4/GPIO2, 6 = GPIO12, 2 = GPIO4, 10 = TX/GPIO1.
+config.portal_led_type       = "ws2812" -- "gpio" (plain LED) or "ws2812" (WS2812B/SK6812;
+                                      -- needs the ws2812 module. firmware/minimal-ws2812 drives
+                                      -- D4/GPIO2 only; the patched build drives any data pin)
+config.portal_led            = 6      -- data pin (ws2812) or LED pin (gpio). This MicroBug board:
+                                      -- 6 = GPIO12. For an ESP-01 plain LED use 10 (TX/GPIO1, which
+                                      -- stops serial output while the portal runs). false = no LED.
+config.portal_led_power      = 2      -- ws2812: pin that powers the LED (2 = GPIO4), false if always on
+config.portal_led_active_low = true   -- gpio:   on-board LEDs light when the pin is LOW
 config.portal_led_color      = { 0, 40, 0 }  -- ws2812: R, G, B (0..255)
