@@ -49,6 +49,7 @@ function flist(){req('/x?action=execute&execute_command='+encodeURIComponent("fo
     if(fn=='#'){free=sz;continue;}n++;var a=[];
     if(!/\.(lc|mp3|png|ico|gz)$/.test(fn))a.push(lnk('editf',fn,'edit'));
     if(/\.(lua|lc)$/.test(fn))a.push(lnk('runf',fn,'execute'));
+    a.push('<a href="/'+encodeURIComponent(fn)+'" download="'+esc(fn)+'">download</a>');
     a.push(lnk('renf',fn,'rename'));a.push(lnk('delf',fn,'delete'));
     h+='<tr><td><a href="/'+fn+'" target="_blank">'+esc(fn)+'</a></td><td>'+esc(sz)+'</td><td>'+a.join(' | ')+'</td></tr>';}
   h+='</table><p>'+n+' file(s)'+(free?', '+esc(free)+' bytes free':'')+'</p>';id('fl').innerHTML=h;
