@@ -165,6 +165,15 @@ After a guest logs in, the portal answers the phone's connectivity checks
 (iOS/macOS, Android, Windows, Firefox) with "online", so the sign-in sheet
 closes by itself. The status LED blinks when a phone joins and on guest login.
 
+### Login precheck hook (optional)
+Upload a `login_precheck.lua` to the device (admin page -> Upload file) and it
+runs before every guest login check. It can read `_login.ip` and
+`_login.user`, and refuse the attempt with `_login.block = true` (plus an
+optional `_login.msg` shown on the form). It never sees the password. A broken
+hook is only logged; logins keep working. See `examples/login_precheck.lua`
+(blocks some usernames, max 5 attempts per IP per minute). Delete the file to
+disable it.
+
 ### Editing the login forms
 `login.html` and `admin_login.html` can be edited freely (layout, text, style).
 The server only needs these fields, and accepts them via **GET or POST**

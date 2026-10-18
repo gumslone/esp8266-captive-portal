@@ -166,7 +166,19 @@ function H.start(st, IP)
 			-- guest login ----------------------------------------------------
 			if act == "login" then
 				local u, p = G.u or "", G.p or ""
-				if file.exists("login_precheck.lua") then dofile("login_precheck.lua") end
+				-- optional hook: login_precheck.lua sees _login.ip / _login.user and
+				-- may refuse the attempt with _login.block = true (+ _login.msg)
+				if file.exists("login_precheck.lua") then
+					_login = { ip = ip, user = u }
+					local ok, err = pcall(dofile, "login_precheck.lua")
+					local hook = _login
+					_login = nil
+					if not ok then print("login_precheck: " .. tostring(err))
+					elseif hook.block then
+						login_form(k, cs, hook.msg or "Login not allowed right now.")
+						return
+					end
+				end
 				if u == st.user and p == st.password then
 					if ip then allowed[ip] = true end
 					if portal_blink then portal_blink() end
