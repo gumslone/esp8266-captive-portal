@@ -1,0 +1,54 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Piano</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px;user-select:none;-webkit-user-select:none}
+h1{font-size:22px;margin:6px 0}.c{margin:6px 0}.c button,.c select{padding:7px 11px;margin:3px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:14px}
+.c button.on{background:#dc2626}#k{position:relative;height:200px;max-width:640px;margin:12px auto;touch-action:none}
+.w,.b{position:absolute;top:0;border-radius:0 0 6px 6px;box-sizing:border-box}
+.w{height:100%;background:#f8fafc;border:1px solid #64748b;z-index:1}.b{height:60%;background:#0f172a;border:1px solid #000;z-index:2}
+.w.p{background:#93c5fd}.b.p{background:#2563eb}.w span{position:absolute;bottom:6px;left:0;right:0;font-size:11px;color:#64748b}
+#s{color:#94a3b8;min-height:20px;font-size:14px}a{color:#94a3b8}</style></head><body>
+<h1>Piano</h1>
+<div class="c"><button onclick="oct(-1)">Oct &minus;</button><button onclick="oct(1)">Oct +</button>
+<select id="ins"><option value="piano">Piano</option><option value="organ">Organ</option><option value="synth">Synth</option></select>
+<button id="rec" onclick="rec()">&#9679; Rec</button><button onclick="replay()">&#9654; Play</button></div>
+<div id="s">Tap or slide over the keys</div><div id="k"></div><a href="/">&larr; back</a>
+<script>
+var ac,base=48,keys=[],voices={},down=0,recording=false,song=[],t0=0;
+var NAMES=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'],KB='awsedftgyhujk';
+function ctx(){if(!ac)ac=new (window.AudioContext||window.webkitAudioContext)();if(ac.state=='suspended')ac.resume();return ac;}
+function freq(n){return 440*Math.pow(2,(n-69)/12);}
+function noteOn(n){if(voices[n])return;var a=ctx(),t=a.currentTime,ins=document.getElementById('ins').value,g=a.createGain(),f=a.createBiquadFilter(),o=[];
+ f.type='lowpass';f.frequency.value=ins=='synth'?2600:4200;g.connect(f);f.connect(a.destination);
+ var parts=ins=='organ'?[[1,'sine',.5],[2,'sine',.25],[4,'sine',.12]]:ins=='synth'?[[1,'sawtooth',.25],[1.005,'square',.12]]:[[1,'triangle',.6],[2,'sine',.15],[3,'sine',.05]];
+ parts.forEach(function(p){var x=a.createOscillator(),v=a.createGain();x.type=p[1];x.frequency.value=freq(n)*p[0];v.gain.value=p[2];x.connect(v);v.connect(g);x.start(t);o.push(x);});
+ g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.35,t+.01);
+ if(ins=='piano')g.gain.exponentialRampToValueAtTime(.08,t+1.2);else g.gain.linearRampToValueAtTime(.25,t+.1);
+ voices[n]={g:g,o:o};mark(n,true);if(recording)song.push([performance.now()-t0,n,1]);}
+function noteOff(n){var v=voices[n];if(!v)return;var a=ctx(),t=a.currentTime;v.g.gain.cancelScheduledValues(t);v.g.gain.setValueAtTime(v.g.gain.value,t);
+ v.g.gain.exponentialRampToValueAtTime(.0001,t+.35);v.o.forEach(function(x){x.stop(t+.4);});delete voices[n];mark(n,false);
+ if(recording)song.push([performance.now()-t0,n,0]);}
+function mark(n,on){var e=document.getElementById('n'+n);if(e)e.classList.toggle('p',on);}
+function build(){var h='',wi=0,W=100/14;for(var n=base;n<base+24;n++){var nm=NAMES[n%12],black=nm.length>1;
+ if(black)h+='<div class="b" id="n'+n+'" data-n="'+n+'" style="left:'+(wi*W-W*0.3)+'%;width:'+(W*0.6)+'%"></div>';
+ else{h+='<div class="w" id="n'+n+'" data-n="'+n+'" style="left:'+(wi*W)+'%;width:'+W+'%">'+(nm=='C'?'<span>C'+(Math.floor(n/12)-1)+'</span>':'')+'</div>';wi++;}}
+ document.getElementById('k').innerHTML=h;}
+function oct(d){base=Math.max(24,Math.min(84,base+12*d));for(var n in voices)noteOff(+n);build();msg('Octave C'+(base/12-1));}
+function msg(m){document.getElementById('s').textContent=m;}
+// pointers: each finger plays its own note; sliding moves to the key under it
+var held={};
+function keyAt(x,y){var e=document.elementFromPoint(x,y);return e&&e.dataset&&e.dataset.n?+e.dataset.n:(e&&e.parentNode&&e.parentNode.dataset&&e.parentNode.dataset.n?+e.parentNode.dataset.n:null);}
+var K=document.getElementById('k');
+K.addEventListener('pointerdown',function(e){e.preventDefault();K.setPointerCapture(e.pointerId);var n=keyAt(e.clientX,e.clientY);if(n!=null){held[e.pointerId]=n;noteOn(n);}});
+K.addEventListener('pointermove',function(e){if(!(e.pointerId in held))return;var n=keyAt(e.clientX,e.clientY);
+ if(n!=null&&n!=held[e.pointerId]){noteOff(held[e.pointerId]);held[e.pointerId]=n;noteOn(n);}});
+function up(e){if(e.pointerId in held){noteOff(held[e.pointerId]);delete held[e.pointerId];}}
+K.addEventListener('pointerup',up);K.addEventListener('pointercancel',up);
+document.onkeydown=function(e){var i=KB.indexOf(e.key);if(i>=0&&!e.repeat)noteOn(base+i);};
+document.onkeyup=function(e){var i=KB.indexOf(e.key);if(i>=0)noteOff(base+i);};
+function rec(){recording=!recording;var b=document.getElementById('rec');b.className=recording?'on':'';
+ if(recording){song=[];t0=performance.now();msg('Recording...');}else msg('Recorded '+song.filter(function(s){return s[2];}).length+' notes - press Play');}
+function replay(){if(recording)rec();if(!song.length){msg('Nothing recorded yet');return;}msg('Playing...');
+ song.forEach(function(s){setTimeout(function(){s[2]?noteOn(s[1]):noteOff(s[1]);},s[0]);});
+ setTimeout(function(){msg('Done');},song[song.length-1][0]+400);}
+build();
+</script></body></html>
