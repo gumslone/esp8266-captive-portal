@@ -1,0 +1,36 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>4 in a Row</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}#b{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-width:360px;margin:12px auto;background:#1d4ed8;padding:6px;border-radius:10px}
+#b div{aspect-ratio:1;border-radius:50%;background:#0f172a}.r{background:#ef4444!important}.y{background:#facc15!important}
+.w{box-shadow:0 0 0 3px #fff inset}#s{min-height:24px;margin:8px}
+.c button{padding:8px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}a{color:#94a3b8}</style></head><body>
+<h1>4 in a Row</h1>
+<div class="c"><button onclick="start(1)">vs Computer</button><button onclick="start(0)">2 Players</button></div>
+<div id="s"></div><div id="b"></div><a href="/">&larr; back</a>
+<script>
+var W=7,H=6,g,t,cpu,over;
+function at(c,r){return g[r*W+c];}
+function drop(c){for(var r=H-1;r>=0;r--)if(!at(c,r))return r;return -1;}
+function line(c,r,p){var D=[[1,0],[0,1],[1,1],[1,-1]];for(var k=0;k<4;k++){var dc=D[k][0],dr=D[k][1],cells=[[c,r]];
+ for(var s=-1;s<=1;s+=2)for(var i=1;i<4;i++){var x=c+dc*i*s,y=r+dr*i*s;if(x<0||x>=W||y<0||y>=H||at(x,y)!=p)break;cells.push([x,y]);}
+ if(cells.length>=4)return cells;}return null;}
+function draw(w){var h='';for(var r=0;r<H;r++)for(var c=0;c<W;c++){var v=at(c,r),hit=w&&w.some(function(q){return q[0]==c&&q[1]==r;});
+ h+='<div class="'+(v=='R'?'r':v=='Y'?'y':'')+(hit?' w':'')+'" onclick="tap('+c+')"></div>';}document.getElementById('b').innerHTML=h;}
+function msg(m){document.getElementById('s').textContent=m;}
+function start(c){g=[];for(var i=0;i<W*H;i++)g.push('');t='R';cpu=c;over=false;draw();msg(c?'Your move (red)':'Red to move');}
+function tap(c){if(over||(cpu&&t=='Y'))return;if(play(c)&&!over&&cpu)setTimeout(ai,300);}
+function play(c){var r=drop(c);if(r<0)return false;g[r*W+c]=t;var w=line(c,r,t);draw(w);
+ if(w){over=true;msg(cpu?(t=='R'?'You win!':'Computer wins'):(t=='R'?'Red':'Yellow')+' wins!');return true;}
+ if(g.indexOf('')<0){over=true;msg('Draw');return true;}t=t=='R'?'Y':'R';
+ msg(cpu?(t=='R'?'Your move (red)':'Computer...'):(t=='R'?'Red':'Yellow')+' to move');return true;}
+function wins(c,p){var r=drop(c);if(r<0)return false;g[r*W+c]=p;var w=line(c,r,p);g[r*W+c]='';return !!w;}
+function ai(){var c,order=[3,2,4,1,5,0,6];
+ for(c=0;c<W;c++)if(wins(c,'Y'))return play(c);          // win now
+ for(c=0;c<W;c++)if(wins(c,'R'))return play(c);          // block
+ for(var i=0;i<W;i++){c=order[i];var r=drop(c);if(r<0)continue;
+  g[r*W+c]='Y';var gives=r>0&&wins(c,'R');g[r*W+c]='';   // don't set up the opponent
+  if(!gives)return play(c);}
+ for(i=0;i<W;i++)if(drop(order[i])>=0)return play(order[i]);}
+start(1);
+</script></body></html>

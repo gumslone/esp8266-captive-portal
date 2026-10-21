@@ -192,8 +192,10 @@ function H.start(st, IP)
 
 			-- explicit file (assets). Guests: whitelist only. Admin: any file -
 			local fname = path ~= "/" and U.safe_name(string.gsub(path, "^/", "")) or ""
-			-- any .mp3 is public too, so captive pages can play their own sounds
-			if fname ~= "" and method == "GET" and (isadmin or PUBLIC[fname] or string.find(fname, "%.mp3$"))
+			-- any .mp3 is public too, so captive pages can play their own sounds;
+			-- game_*.html for guests who are through the gate (or in open mode)
+			local game = string.find(fname, "^game_.*%.html$") and ((not st.require_login) or (ip and allowed[ip]))
+			if fname ~= "" and method == "GET" and (isadmin or PUBLIC[fname] or string.find(fname, "%.mp3$") or game)
 				and S.send_file(k, cs, fname) then
 				return
 			end

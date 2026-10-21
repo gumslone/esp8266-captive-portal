@@ -1,0 +1,28 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Tic-Tac-Toe</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}#b{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;max-width:300px;margin:12px auto}
+#b button{aspect-ratio:1;font-size:44px;font-weight:700;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0}
+.x{color:#38bdf8!important}.o{color:#f472b6!important}.w{background:#334155!important}
+#s{min-height:24px;margin:8px}.c button{padding:8px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}
+a{color:#94a3b8}</style></head><body>
+<h1>Tic-Tac-Toe</h1>
+<div class="c"><button onclick="start(1)">vs Computer</button><button onclick="start(0)">2 Players</button></div>
+<div id="s"></div><div id="b"></div><a href="/">&larr; back</a>
+<script>
+var L=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]],g,t,cpu,over;
+function win(b){for(var i=0;i<8;i++){var l=L[i];if(b[l[0]]&&b[l[0]]==b[l[1]]&&b[l[0]]==b[l[2]])return l;}return null;}
+function full(b){return b.indexOf('')<0;}
+function mm(b,p){var w=win(b);if(w)return b[w[0]]=='O'?1:-1;if(full(b))return 0;var best=p=='O'?-2:2;
+ for(var i=0;i<9;i++)if(!b[i]){b[i]=p;var v=mm(b,p=='O'?'X':'O');b[i]='';best=p=='O'?Math.max(best,v):Math.min(best,v);}return best;}
+function ai(){var bi=-1,bv=-2;for(var i=0;i<9;i++)if(!g[i]){g[i]='O';var v=mm(g,'X');g[i]='';if(v>bv){bv=v;bi=i;}}play(bi);}
+function draw(w){var h='';for(var i=0;i<9;i++)h+='<button class="'+(g[i]=='X'?'x':g[i]=='O'?'o':'')+(w&&w.indexOf(i)>=0?' w':'')+'" onclick="tap('+i+')">'+g[i]+'</button>';
+ document.getElementById('b').innerHTML=h;}
+function msg(m){document.getElementById('s').textContent=m;}
+function start(c){g=['','','','','','','','',''];t='X';cpu=c;over=false;draw();msg('X to move');}
+function tap(i){if(over||g[i]||(cpu&&t=='O'))return;play(i);if(!over&&cpu&&t=='O')setTimeout(ai,250);}
+function play(i){g[i]=t;var w=win(g);draw(w);
+ if(w){over=true;msg(cpu?(t=='X'?'You win!':'Computer wins'):t+' wins!');return;}
+ if(full(g)){over=true;msg('Draw');return;}t=t=='X'?'O':'X';msg(cpu?(t=='X'?'Your move':'Computer...'):t+' to move');}
+start(1);
+</script></body></html>

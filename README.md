@@ -66,6 +66,9 @@ portal_*.html       more captive page designs: minimal, info, event, offline, wa
                     the admin picks the active one (Captive page section).
                     portal_war.html is uploaded gzipped (portal_war.html.gz) and
                     plays assets/audio.mp3 (uploaded as audio.mp3)
+game_*.html         small offline games: tic-tac-toe and 4 in a row (vs computer
+                    or 2 players); sent gzipped, open to guests after login.
+                    portal_games.html is a captive page that links to them
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)
 ```

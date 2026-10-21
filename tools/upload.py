@@ -48,6 +48,8 @@ CORE = ["init.lua", "config.lua", "captive_portal.lua", "cp_util.lua", "cp_dns.l
         "adm_exec.lua", "adm_scan.lua", "admin_login.html"]
 OPTIONAL = ["reset_button.lua", "sound.mp3", "audio.mp3"]
 GZIPPED = ["admin.html", "admin.js", "style.css", "portal_war.html"]
+# game pages (html/game_*.html) are sent gzipped too - no {{tokens}} in them
+GZIPPED += sorted(os.path.basename(f) for f in glob.glob(os.path.join(ROOT, "html", "game_*.html")))
 NO_MINIFY = ["config.lua"]       # kept readable: settings you edit by hand
 # --lfs: these modules go into lfs.img (run from flash) instead of .lua/.lc files
 LFS_MODS = ["cp_util", "cp_dns", "cp_http", "captive_portal",
