@@ -1,0 +1,27 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Breakout</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}canvas{background:#1e293b;border-radius:10px;width:min(92vw,320px);touch-action:none}
+#s{min-height:24px;margin:8px}.c button{padding:8px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}a{color:#94a3b8}</style></head><body>
+<h1>Breakout</h1><div class="c"><button onclick="start()">New game</button></div>
+<div id="s">Drag or use the arrow keys</div><canvas id="v" width="320" height="400"></canvas><br><a href="/">&larr; back</a>
+<script>
+var V=document.getElementById('v'),x=V.getContext('2d'),W=320,H=400,R=6,C=8,BW=36,BH=14,px,bx,by,vx,vy,br,score,lives,run,key=0;
+function start(){px=130;bx=160;by=300;vx=2.4;vy=-3;score=0;lives=3;br=[];
+ for(var r=0;r<5;r++)for(var c=0;c<C;c++)br.push({x:4+c*39.5,y:30+r*20,r:r});if(!run){run=1;loop();}msg();}
+function msg(){document.getElementById('s').textContent='Score: '+score+'   Lives: '+lives;}
+function loop(){if(!run)return;step();draw();requestAnimationFrame(loop);}
+function step(){px=Math.max(0,Math.min(W-60,px+key*6));bx+=vx;by+=vy;
+ if(bx<R||bx>W-R)vx=-vx;if(by<R)vy=-vy;
+ if(by>H-30-R&&by<H-20&&bx>px&&bx<px+60&&vy>0){vy=-Math.abs(vy);vx=(bx-(px+30))/8;}
+ if(by>H){lives--;msg();if(!lives){run=0;document.getElementById('s').textContent='Game over - score '+score;return;}bx=px+30;by=H-40;vx=2.4;vy=-3;}
+ for(var i=0;i<br.length;i++){var b=br[i];if(bx>b.x&&bx<b.x+BW&&by>b.y&&by<b.y+BH){br.splice(i,1);vy=-vy;score+=10;msg();break;}}
+ if(!br.length){run=0;document.getElementById('s').textContent='You win! Score '+score;}}
+function draw(){x.fillStyle='#1e293b';x.fillRect(0,0,W,H);var col=['#ef4444','#f97316','#facc15','#22c55e','#3b82f6'];
+ br.forEach(function(b){x.fillStyle=col[b.r];x.fillRect(b.x,b.y,BW,BH);});
+ x.fillStyle='#e2e8f0';x.fillRect(px,H-30,60,10);x.beginPath();x.arc(bx,by,R,0,7);x.fill();}
+function drag(e){var t=e.touches?e.touches[0]:e,r=V.getBoundingClientRect();px=(t.clientX-r.left)*W/r.width-30;e.preventDefault();}
+V.addEventListener('touchmove',drag,{passive:false});V.addEventListener('mousemove',function(e){if(e.buttons)drag(e);});
+document.onkeydown=function(e){if(e.keyCode==37)key=-1;if(e.keyCode==39)key=1;};document.onkeyup=function(){key=0;};
+start();
+</script></body></html>
