@@ -1,0 +1,25 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Flappy</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}canvas{background:#0c4a6e;border-radius:10px;width:min(92vw,320px);touch-action:none}
+#s{min-height:24px;margin:8px}a{color:#94a3b8}</style></head><body>
+<h1>Flappy</h1><div id="s">Tap (or Space) to fly</div><canvas id="v" width="320" height="440"></canvas><br><a href="/">&larr; back</a>
+<script>
+var V=document.getElementById('v'),x=V.getContext('2d'),W=320,H=440,GAP=130,y,vy,pipes,score,state='ready',best=0;
+function reset(){y=H/2;vy=0;pipes=[];score=0;}
+function flap(){if(state=='over'){reset();state='ready';draw();return;}if(state=='ready'){state='play';loop();}vy=-6.2;}
+function loop(){if(state!='play')return;step();draw();requestAnimationFrame(loop);}
+function step(){vy+=.35;y+=vy;
+ if(!pipes.length||pipes[pipes.length-1].x<W-170)pipes.push({x:W,g:60+Math.random()*(H-GAP-120),p:false});
+ pipes.forEach(function(p){p.x-=2.2;if(!p.p&&p.x+50<80){p.p=true;score++;}});
+ if(pipes[0].x<-60)pipes.shift();
+ var hit=y>H-12||y<12||pipes.some(function(p){return 80+12>p.x&&80-12<p.x+50&&(y-12<p.g||y+12>p.g+GAP);});
+ if(hit){state='over';best=Math.max(best,score);}
+ document.getElementById('s').textContent=state=='over'?'Crash! Score '+score+' (best '+best+') - tap to retry':'Score: '+score;}
+function draw(){x.fillStyle='#0c4a6e';x.fillRect(0,0,W,H);x.fillStyle='#22c55e';
+ pipes.forEach(function(p){x.fillRect(p.x,0,50,p.g);x.fillRect(p.x,p.g+GAP,50,H);});
+ x.fillStyle='#facc15';x.beginPath();x.arc(80,y,12,0,7);x.fill();}
+V.addEventListener('touchstart',function(e){e.preventDefault();flap();},{passive:false});V.addEventListener('mousedown',flap);
+document.onkeydown=function(e){if(e.keyCode==32){e.preventDefault();flap();}};
+reset();draw();
+</script></body></html>

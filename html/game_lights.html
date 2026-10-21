@@ -1,0 +1,21 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Lights Out</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}#b{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;max-width:300px;margin:12px auto}
+#b button{aspect-ratio:1;border:0;border-radius:10px;background:#1e293b}#b button.on{background:#facc15;box-shadow:0 0 12px #facc15}
+#s{min-height:24px;margin:8px}.c button{padding:8px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}a{color:#94a3b8}</style></head><body>
+<h1>Lights Out</h1><div class="c"><button onclick="start()">New puzzle</button></div>
+<div id="s">Turn all the lights off</div><div id="b"></div><a href="/">&larr; back</a>
+<script>
+var g,moves;
+function flip(i){var r=Math.floor(i/5),c=i%5;[[0,0],[1,0],[-1,0],[0,1],[0,-1]].forEach(function(d){var y=r+d[0],x=c+d[1];
+ if(y>=0&&y<5&&x>=0&&x<5)g[y*5+x]=!g[y*5+x];});}
+function start(){g=[];for(var i=0;i<25;i++)g.push(false);
+ do{for(var k=0;k<12;k++)flip(Math.floor(Math.random()*25));}while(g.indexOf(true)<0);   // random presses = solvable
+ moves=0;draw();}
+function draw(){var h='';for(var i=0;i<25;i++)h+='<button class="'+(g[i]?'on':'')+'" onclick="tap('+i+')"></button>';
+ document.getElementById('b').innerHTML=h;
+ document.getElementById('s').textContent=g.indexOf(true)<0?'All off in '+moves+' moves!':'Moves: '+moves;}
+function tap(i){if(g.indexOf(true)<0)return;flip(i);moves++;draw();}
+start();
+</script></body></html>

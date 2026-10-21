@@ -1,0 +1,17 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Rock Paper Scissors</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}.p button{width:88px;height:88px;margin:6px;border:0;border-radius:16px;background:#1e293b;font-size:44px}
+#r{font-size:56px;margin:16px 0;min-height:70px}#s{font-size:18px;min-height:26px}#sc{color:#94a3b8;margin:8px}a{color:#94a3b8}</style></head><body>
+<h1>Rock Paper Scissors</h1>
+<div id="r"></div><div id="s">Pick one</div><div id="sc"></div>
+<div class="p"><button onclick="play(0)">&#9994;</button><button onclick="play(1)">&#9995;</button><button onclick="play(2)">&#9996;</button></div>
+<a href="/">&larr; back</a>
+<script>
+var I=['✊','✋','✌'],N=['Rock','Paper','Scissors'],me=0,cpu=0,tie=0;
+function play(p){var c=Math.floor(Math.random()*3),d=(p-c+3)%3;
+ document.getElementById('r').textContent=I[p]+' vs '+I[c];
+ document.getElementById('s').textContent=d==0?'Tie':d==1?'You win - '+N[p]+' beats '+N[c]:'You lose - '+N[c]+' beats '+N[p];
+ if(d==0)tie++;else if(d==1)me++;else cpu++;
+ document.getElementById('sc').textContent='You '+me+' : '+cpu+' Computer   (ties '+tie+')';}
+</script></body></html>
