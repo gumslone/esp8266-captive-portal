@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Snake</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}canvas{background:#1e293b;border-radius:10px;width:min(90vw,320px);touch-action:none}
+#s{min-height:24px;margin:8px}.c button{padding:8px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}
+.p{display:grid;grid-template-columns:repeat(3,56px);gap:6px;justify-content:center;margin:10px}
+.p button{height:48px;border:0;border-radius:10px;background:#334155;color:#fff;font-size:20px}a{color:#94a3b8}</style></head><body>
+<h1>Snake</h1><div class="c"><button onclick="start()">New game</button></div>
+<div id="s">Swipe or use the arrows</div><canvas id="v" width="320" height="320"></canvas>
+<div class="p"><span></span><button onclick="turn(0,-1)">&uarr;</button><span></span>
+<button onclick="turn(-1,0)">&larr;</button><button onclick="turn(0,1)">&darr;</button><button onclick="turn(1,0)">&rarr;</button></div>
+<a href="/">&larr; back</a>
+<script>
+var N=16,S=20,x=document.getElementById('v').getContext('2d'),sn,dx,dy,nx,ny,food,score,tm;
+function place(){do{food=[Math.floor(Math.random()*N),Math.floor(Math.random()*N)];}
+ while(sn.some(function(p){return p[0]==food[0]&&p[1]==food[1];}));}
+function start(){sn=[[8,8],[7,8],[6,8]];dx=1;dy=0;nx=1;ny=0;score=0;place();clearInterval(tm);tm=setInterval(step,140);msg('Score: 0');}
+function msg(m){document.getElementById('s').textContent=m;}
+function turn(a,b){if(a==-dx&&b==-dy)return;nx=a;ny=b;}
+function step(){dx=nx;dy=ny;var h=[sn[0][0]+dx,sn[0][1]+dy];
+ if(h[0]<0||h[1]<0||h[0]>=N||h[1]>=N||sn.some(function(p){return p[0]==h[0]&&p[1]==h[1];})){clearInterval(tm);msg('Game over - score '+score);return;}
+ sn.unshift(h);if(h[0]==food[0]&&h[1]==food[1]){score++;msg('Score: '+score);place();}else sn.pop();draw();}
+function draw(){x.fillStyle='#1e293b';x.fillRect(0,0,320,320);x.fillStyle='#f472b6';x.fillRect(food[0]*S+2,food[1]*S+2,S-4,S-4);
+ sn.forEach(function(p,i){x.fillStyle=i?'#22c55e':'#86efac';x.fillRect(p[0]*S+1,p[1]*S+1,S-2,S-2);});}
+document.onkeydown=function(e){var k={37:[-1,0],38:[0,-1],39:[1,0],40:[0,1]}[e.keyCode];if(k){turn(k[0],k[1]);e.preventDefault();}};
+var t0;document.getElementById('v').addEventListener('touchstart',function(e){t0=e.touches[0];},{passive:true});
+document.getElementById('v').addEventListener('touchend',function(e){var t=e.changedTouches[0],a=t.clientX-t0.clientX,b=t.clientY-t0.clientY;
+ if(Math.abs(a)>Math.abs(b))turn(a>0?1:-1,0);else turn(0,b>0?1:-1);});
+start();
+</script></body></html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Memory</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:16px}
+h1{font-size:22px;margin:8px 0}#b{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-width:320px;margin:12px auto}
+#b button{aspect-ratio:1;font-size:30px;border:0;border-radius:10px;background:#2563eb;color:#fff}
+#b button.o{background:#1e293b}#b button.m{background:#14532d}#s{min-height:24px;margin:8px}
+.c button{padding:8px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}a{color:#94a3b8}</style></head><body>
+<h1>Memory</h1><div class="c"><button onclick="start()">New game</button></div>
+<div id="s"></div><div id="b"></div><a href="/">&larr; back</a>
+<script>
+var E=['🍎','🍌','🍒','🍇','🍋','🍉','🥝','🍓'],c,open,done,moves,lock;
+function start(){c=E.concat(E);for(var i=c.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=c[i];c[i]=c[j];c[j]=t;}
+ open=[];done=[];moves=0;lock=false;draw();msg('Find all pairs');}
+function draw(){var h='';for(var i=0;i<16;i++){var up=open.indexOf(i)>=0||done.indexOf(i)>=0;
+ h+='<button class="'+(done.indexOf(i)>=0?'m':up?'o':'')+'" onclick="flip('+i+')">'+(up?c[i]:'')+'</button>';}
+ document.getElementById('b').innerHTML=h;}
+function msg(m){document.getElementById('s').textContent=m;}
+function flip(i){if(lock||open.indexOf(i)>=0||done.indexOf(i)>=0)return;open.push(i);draw();
+ if(open.length<2)return;moves++;
+ if(c[open[0]]==c[open[1]]){done=done.concat(open);open=[];draw();
+  msg(done.length==16?'Done in '+moves+' moves!':'Moves: '+moves);}
+ else{lock=true;msg('Moves: '+moves);setTimeout(function(){open=[];lock=false;draw();},700);}}
+start();
+</script></body></html>
