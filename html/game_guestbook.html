@@ -16,7 +16,9 @@ function show(t){var L=document.getElementById('l');L.innerHTML='';
  rows.forEach(function(r){var i=r.indexOf('|'),d=document.createElement('div'),b=document.createElement('b');   // textContent: never HTML
   b.textContent=r.slice(0,i);d.appendChild(b);d.appendChild(document.createTextNode(r.slice(i+1)));L.appendChild(d);});}
 function load(body){var x=new XMLHttpRequest();x.open(body?'POST':'GET','/api/gb');
- x.onload=function(){if(x.status==200)show(x.responseText);else document.getElementById('s').textContent='Could not reach the board';};
+ x.onload=function(){var s=document.getElementById('s');if(x.status==200)show(x.responseText);
+ else if(x.status==429){s.textContent='One note per 30 s - try again in '+x.responseText+' s';document.getElementById('m').value=decodeURIComponent(body.split('&m=')[1]);}
+ else s.textContent='Could not reach the board';};
  if(body)x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');x.send(body||null);}
 function post(){var m=document.getElementById('m');if(!m.value.trim())return;
  try{localStorage.gbn=document.getElementById('n').value;}catch(e){}

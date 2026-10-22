@@ -4,7 +4,7 @@
 h1{font-size:24px;margin:0 0 6px}p{color:#94a3b8;margin:0 0 18px}h2{font-size:15px;color:#94a3b8;margin:20px 0 8px}
 .g{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:380px;margin:0 auto}
 a{display:block;padding:14px 6px;border-radius:12px;background:#2563eb;color:#fff;text-decoration:none;font-size:16px}</style></head><body>
-<h1>Welcome to {{SSID}}</h1><p>No internet here - have a game instead.</p>
+<h1>Welcome to {{SSID}}</h1><p>No internet here - have a game instead.<br><span id="who"></span></p>
 <div class="g">
 <a href="/game_ttt.html">Tic-Tac-Toe</a><a href="/game_c4.html">4 in a Row</a>
 <a href="/game_memory.html">Memory</a><a href="/game_snake.html">Snake</a>
@@ -18,8 +18,12 @@ a{display:block;padding:14px 6px;border-radius:12px;background:#2563eb;color:#ff
 <h2>Play together on this Wi-Fi</h2><div class="g">
 <a href="/game_duel.html">2 Phones</a><a href="/game_guestbook.html">Guestbook</a>
 <a href="/game_pixels.html">Pixel Wall</a><a href="/game_led.html">Light the Box</a>
+<a href="/game_buzzer.html">Quiz Buzzer</a>
 </div>
 <h2>Music &amp; art</h2><div class="g">
 <a href="/game_piano.html">Piano</a><a href="/game_drums.html">Drums</a>
 <a href="/game_theremin.html">Theremin</a><a href="/game_draw.html">Draw</a>
-</div></body></html>
+</div>
+<script>var x=new XMLHttpRequest();x.open('GET','/api/n');
+x.onload=function(){var n=+x.responseText;if(x.status==200&&n>1)document.getElementById('who').textContent=n+' phones on this Wi-Fi right now';};x.send();</script>
+</body></html>

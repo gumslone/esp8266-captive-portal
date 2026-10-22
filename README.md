@@ -74,10 +74,12 @@ game_*.html         small offline games: tic-tac-toe, 4 in a row, memory, snake,
                     music and art: piano, drums, theremin, draw (Web Audio /
                     canvas, all in the browser); shared on this Wi-Fi: 2 phones
                     (tic-tac-toe / 4 in a row between two phones), guestbook,
-                    pixel wall, light the box (sets the WS2812 colour).
-                    Sent gzipped, open to guests after login. Admin clears the
-                    guestbook / wall at /api/gb?clear=1 and /api/px?clear=1
-                    (or deletes guestbook.txt / pixels.txt)
+                    pixel wall, light the box (sets the WS2812 colour), quiz
+                    buzzer (first press wins and lights the LED; the quizmaster
+                    starts each round). The games menu shows how many phones are
+                    connected. Sent gzipped, open to guests after login.
+                    Guestbook: one note per phone per 30 s. Admin > Guest pages
+                    views, deletes and clears notes and the pixel wall.
                     portal_games.html is a captive page that links to them
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)

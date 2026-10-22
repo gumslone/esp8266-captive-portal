@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Quiz Buzzer</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px;user-select:none;-webkit-user-select:none}
+h1{font-size:22px;margin:6px 0}input{padding:9px;border:0;border-radius:8px;background:#1e293b;color:#e2e8f0;font-size:16px;text-align:center;width:180px}
+#bz{width:220px;height:220px;border-radius:50%;border:0;margin:18px auto;display:block;background:#dc2626;color:#fff;font-size:30px;font-weight:800;
+box-shadow:0 10px 0 #7f1d1d;touch-action:manipulation}#bz:active{transform:translateY(6px);box-shadow:0 4px 0 #7f1d1d}#bz:disabled{background:#475569;box-shadow:0 10px 0 #1e293b}
+#w{font-size:22px;min-height:30px}#l{color:#94a3b8;min-height:22px}
+.c button{padding:8px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}#hb{display:none}a{color:#94a3b8}</style></head><body>
+<h1>Quiz Buzzer</h1><input id="n" maxlength="20" placeholder="Your name">
+<button id="bz" onclick="press()">BUZZ</button>
+<div id="w">Waiting for the round...</div><div id="l"></div>
+<div class="c"><button id="hb" onclick="act('&next=1')">Next round</button><button id="hc" onclick="act('&host=1')">I'm the quizmaster</button></div>
+<a href="/">&larr; back</a>
+<script>
+var me,st={r:0},busy=0,mine=-1;
+try{me=localStorage.duelId;document.getElementById('n').value=localStorage.gbn||'';}catch(e){}
+if(!me){me=Math.random().toString(36).slice(2,10);try{localStorage.duelId=me;}catch(e){}}
+function act(q){busy++;var x=new XMLHttpRequest();x.open('GET','/api/bz?me='+me+q);
+ x.onload=function(){busy--;var f=x.responseText.split('|');if(f.length==4){st={r:+f[0],host:f[1]=='1',hasHost:f[2]=='1',w:f[3]?f[3].split(','):[]};draw();}};
+ x.onerror=function(){busy--;};x.send();}
+function press(){var n=document.getElementById('n').value.trim()||'guest';try{localStorage.gbn=n;}catch(e){}
+ if(navigator.vibrate)navigator.vibrate(60);mine=st.r;act('&press='+st.r+'&n='+encodeURIComponent(n));}
+function draw(){var n=document.getElementById('n').value.trim()||'guest',w=st.w;
+ document.getElementById('bz').disabled=mine==st.r||w.length>=5;
+ document.getElementById('w').textContent=w.length?(w[0]==n?'You were first!':w[0]+' was first!'):'Round '+st.r+' - get ready...';
+ document.getElementById('l').textContent=w.length>1?'Then: '+w.slice(1).join(', '):'';
+ document.getElementById('hb').style.display=st.host?'inline-block':'none';
+ document.getElementById('hc').style.display=st.host||st.hasHost?'none':'inline-block';}
+act('');setInterval(function(){if(!document.hidden&&!busy)act('');},1500);
+</script></body></html>

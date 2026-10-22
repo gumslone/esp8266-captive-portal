@@ -1,11 +1,14 @@
 -- cp_api.lua : small guest APIs behind the shared pages (game_guestbook,
--- game_pixels, game_duel, game_led). Loaded per request by cp_http and
+-- game_pixels, game_duel, game_led, game_buzzer). Loaded per request by cp_http and
 -- dropped afterwards, like the adm_*.lua modules. Replies are plain text.
 --   /api/gb   guestbook: GET lists "name|msg" lines; n=&m= adds one
 --   /api/px   pixel canvas: 32x32 board as 1024 hex chars; i=&c= paints one
 --   /api/mp   2-player rooms (tic-tac-toe / 4 in a row), state in RAM
 --   /api/led  c=rrggbb lights the status LED (ws2812 only)
+--   /api/bz   quiz buzzer: first presses of a round, in order
+--   /api/n    how many phones are connected
 local GB_LINES = 15        -- guestbook keeps the newest 15 notes (~2 KB file)
+local GB_WAIT = 30         -- seconds between two notes from one phone
 local PX = 1024            -- 32 x 32 canvas, one hex char (palette index) per pixel
 local ROOMS = 4            -- at most 4 live 2-player rooms
 
@@ -20,16 +23,32 @@ return function(S, r)
 	if what == "gb" then
 		if G.clear and r.isadmin then file.remove("guestbook.txt") end
 		local m = string.sub(string.gsub(G.m or "", "[\r\n|]", " "), 1, 120)
-		if string.find(m, "%S") then
-			local n = string.sub(string.gsub(G.n or "", "[\r\n|]", " "), 1, 20)
-			if not string.find(n, "%S") then n = "guest" end
+		local del = r.isadmin and tonumber(G.del or "")          -- admin: remove note no. del
+		if string.find(m, "%S") or del then
+			local now, last = tmr.time(), S.gb_last or {}        -- last[ip] = time of the last note
+			S.gb_last = last
+			if not del and r.ip and last[r.ip] and now - last[r.ip] < GB_WAIT then
+				k:send("HTTP/1.1 429 Too Many Requests\r\nConnection: close\r\n\r\n" .. (GB_WAIT - (now - last[r.ip])))
+				return
+			end
 			local keep, fd = {}, file.open("guestbook.txt", "r")
 			if fd then
 				repeat local l = fd:readline(); if l then keep[#keep + 1] = l end until not l
 				fd:close()
 			end
-			while #keep >= GB_LINES do table.remove(keep, 1) end
-			keep[#keep + 1] = n .. "|" .. m .. "\n"
+			if del then table.remove(keep, del)
+			else
+				local n = string.sub(string.gsub(G.n or "", "[\r\n|]", " "), 1, 20)
+				if not string.find(n, "%S") then n = "guest" end
+				while #keep >= GB_LINES do table.remove(keep, 1) end
+				keep[#keep + 1] = n .. "|" .. m .. "\n"
+				if r.ip then
+					local cnt = 0
+					for _ in pairs(last) do cnt = cnt + 1 end
+					if cnt > 30 then last = {}; S.gb_last = last end  -- keep the table small
+					last[r.ip] = now
+				end
+			end
 			fd = file.open("guestbook.txt", "w")
 			if fd then fd:write(table.concat(keep)); fd:close() end
 		end
@@ -99,6 +118,36 @@ return function(S, r)
 			portal_led(tonumber(cr, 16), tonumber(cg, 16), tonumber(cb, 16))
 			txt("ok")
 		else txt(portal_led and "bad colour" or "no LED on this board") end
+
+	elseif what == "bz" then
+		-- bz = { r = round no., w = { "name", ... } first 5 presses, h = host id,
+		--        ht = host last seen }. The host (or admin) starts each round;
+		-- a host gone for 60 s can be replaced. First press lights the LED.
+		local bz = S.bz or { r = 1, w = {} }
+		S.bz = bz
+		local me, now = string.sub(G.me or "", 1, 12), tmr.time()
+		if G.host and me ~= "" and (not bz.h or bz.h == me or now - bz.ht > 60) then bz.h = me end
+		local host = r.isadmin or (me ~= "" and bz.h == me)
+		if bz.h == me then bz.ht = now end
+		if G.next and host then
+			bz.r, bz.w = bz.r + 1, {}
+			if portal_led then portal_led(0, 0, 0) end
+		elseif G.press and tonumber(G.press) == bz.r and #bz.w < 5 then
+			local n = string.sub(string.gsub(G.n or "", "[\r\n|,]", " "), 1, 20)
+			if not string.find(n, "%S") then n = "guest" end
+			local dup = false
+			for _, v in ipairs(bz.w) do if v == n then dup = true end end
+			if not dup then
+				bz.w[#bz.w + 1] = n
+				if #bz.w == 1 and portal_led then portal_led(120, 0, 0) end
+			end
+		end
+		txt(bz.r .. "|" .. (host and "1" or "0") .. "|" .. (bz.h and "1" or "0") .. "|" .. table.concat(bz.w, ","))
+
+	elseif what == "n" then
+		local cnt = 0
+		for _ in pairs(wifi.ap.getclient() or {}) do cnt = cnt + 1 end
+		txt(tostring(cnt))
 
 	else
 		k:send("HTTP/1.1 404 Not Found\r\nConnection: close\r\n\r\n")

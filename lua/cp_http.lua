@@ -199,7 +199,7 @@ function H.start(st, IP)
 				end
 				local api = require("cp_api")
 				package.loaded["cp_api"] = nil
-				api(S, { k = k, path = path, G = G, isadmin = isadmin, cs = cs })
+				api(S, { k = k, path = path, G = G, ip = ip, isadmin = isadmin, cs = cs })
 				return
 			end
 
