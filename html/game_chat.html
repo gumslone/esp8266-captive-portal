@@ -17,6 +17,7 @@ function name(){return document.getElementById('n').value.trim()||'guest';}
 function col(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return COL[Math.abs(h)%COL.length];}
 function note(t){var p=document.createElement('p');p.textContent=t;L.appendChild(p);}
 function add(t){var r=t.split('\n'),top=+r[0],first=true;if(isNaN(top))return;
+ if(top!=since)lively();else quiet++;
  if(top<since){since=0;note('The box restarted - chat cleared');}
  var end=L.scrollTop+L.clientHeight>=L.scrollHeight-30;
  for(var i=1;i<r.length;i++){var f=r[i].split('|');if(f.length<3||+f[0]<=since)continue;
@@ -33,7 +34,11 @@ function req(q,body){busy++;var x=new XMLHttpRequest();x.open(body?'POST':'GET',
  if(body)x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');x.send(body||null);}
 function send(){var m=document.getElementById('m');if(!m.value.trim())return;
  try{localStorage.gbn=document.getElementById('n').value;}catch(e){}
- req('','n='+encodeURIComponent(name())+'&m='+encodeURIComponent(m.value));m.value='';m.focus();}
+ lively();req('','n='+encodeURIComponent(name())+'&m='+encodeURIComponent(m.value));m.value='';m.focus();}
 try{document.getElementById('n').value=localStorage.gbn||'';}catch(e){}
-req();setInterval(function(){if(!document.hidden&&!busy)req();},3000);
+req();
+// back-off: each poll is a new connection to the box. After 3 replies with
+// nothing new, skip a tick (then 2, ...), up to 2; any change or tap resets it
+var quiet=0,skip=0;function lively(){quiet=0;skip=0;}
+setInterval(function(){if(document.hidden||busy)return;if(skip>0){skip--;return;}skip=Math.min(Math.floor(quiet/3),2);req();},3000);
 </script></body></html>

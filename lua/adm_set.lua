@@ -2,11 +2,13 @@
 -- or login form (set_page, kind=login). Loaded per request by cp_http.
 return function(S, x)
 	local st, U, k, G = S.st, S.U, x.k, x.G
+	local C = require("cp_cfg")
+	package.loaded["cp_cfg"] = nil
 	if x.act == "set_page" then
 		local name = U.safe_name(G.name or "")
 		if string.find(name, "%.html$") and (file.exists(name) or file.exists(name .. ".gz")) then
 			if G.kind == "login" then st.login = name else st.page = name end
-			U.save_settings(st)
+			C.save(st)
 			k:send("HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n")
 		else
 			k:send("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n")
@@ -31,7 +33,7 @@ return function(S, x)
 		msg = "New admin password must be at least 6 characters (leave it blank to keep the current one)."
 	elseif s2.ap_password and #s2.ap_password < 8 then   -- would silently become an open AP
 		msg = "WPA2 key must be at least 8 characters (leave it blank for an open network)."
-	elseif U.save_settings(s2) then
+	elseif C.save(s2) then
 		msg = "Saved. Restarting&hellip;"
 		tmr.create():alarm(1500, tmr.ALARM_SINGLE, function() node.restart() end)
 	else

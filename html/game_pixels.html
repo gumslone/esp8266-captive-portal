@@ -15,12 +15,16 @@ function draw(){for(var i=0;i<1024;i++){x.fillStyle=P[parseInt(b[i]||'0',16)];x.
 // reply: "version\n" + the board only if it changed since our version
 function req(q){busy++;var r=new XMLHttpRequest();r.open('GET','/api/px?v='+ver+(q||''));
  r.onload=function(){busy--;if(r.status!=200)return;var t=r.responseText,j=t.indexOf('\n');
-  if(t.length>j+1024&&!busy){ver=+t.slice(0,j);b=t.slice(j+1,j+1025);draw();}};r.onerror=function(){busy--;};r.send();}
+  if(t.length>j+1024&&!busy){ver=+t.slice(0,j);b=t.slice(j+1,j+1025);draw();lively();}else quiet++;};r.onerror=function(){busy--;};r.send();}
 function paint(e){var r=V.getBoundingClientRect(),cx=Math.floor((e.clientX-r.left)*32/r.width),cy=Math.floor((e.clientY-r.top)*32/r.height);
  if(cx<0||cy<0||cx>31||cy>31)return;var i=cy*32+cx;if(i==lastI)return;lastI=i;
- var h=col.toString(16);b=b.slice(0,i)+h+b.slice(i+1);x.fillStyle=P[col];x.fillRect(cx,cy,1,1);req('&i='+i+'&c='+h);}
+ var h=col.toString(16);b=b.slice(0,i)+h+b.slice(i+1);x.fillStyle=P[col];x.fillRect(cx,cy,1,1);lively();req('&i='+i+'&c='+h);}
 V.addEventListener('pointerdown',function(e){e.preventDefault();V.setPointerCapture(e.pointerId);lastI=-1;paint(e);});
 V.addEventListener('pointermove',function(e){if(e.buttons||e.pointerType=='touch')if(lastI>=0)paint(e);});
 V.addEventListener('pointerup',function(){lastI=-1;});
-b=Array(1025).join('0');draw();req();setInterval(function(){if(!document.hidden&&!busy)req();},4000);
+b=Array(1025).join('0');draw();req();
+// back-off: each poll is a new connection to the box. After 3 replies with
+// nothing new, skip a tick (then 2, ...), up to 2; any change or tap resets it
+var quiet=0,skip=0;function lively(){quiet=0;skip=0;}
+setInterval(function(){if(document.hidden||busy)return;if(skip>0){skip--;return;}skip=Math.min(Math.floor(quiet/3),2);req();},4000);
 </script></body></html>

@@ -17,15 +17,19 @@ button{padding:9px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb
 <button onclick="leave()">Leave</button></div>
 <a href="/">&larr; back</a>
 <script>
-var me,room,st=null,poll=null,busy=0;
+var me,room,st=null,poll=null,busy=0,last='';
 try{me=localStorage.duelId;}catch(e){}if(!me){me=Math.random().toString(36).slice(2,10);try{localStorage.duelId=me;}catch(e){}}
 document.getElementById('code').value=Math.random().toString(36).slice(2,6).toUpperCase();
 function join(){room=document.getElementById('code').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(!room)return;
  document.getElementById('lobby').style.display='none';document.getElementById('g').style.display='block';
- act('&g='+document.getElementById('game').value);poll=setInterval(function(){if(!document.hidden&&!busy)act('');},1500);}
+ act('&g='+document.getElementById('game').value);lively();
+ poll=setInterval(function(){if(!st||document.hidden||busy)return;if(skip>0){skip--;return;}skip=Math.min(Math.floor(quiet/3),3);act('');},1500);}
+// back-off: each poll is a new connection to the box. After 3 replies with
+// nothing new, skip a tick (then 2, up to 3); any change or tap resets it
+var quiet=0,skip=0;function lively(){quiet=0;skip=0;}
 function leave(){clearInterval(poll);st=null;document.getElementById('g').style.display='none';document.getElementById('lobby').style.display='block';}
 function act(q){busy++;var x=new XMLHttpRequest();x.open('GET','/api/mp?r='+room+'&me='+me+q);
- x.onload=function(){busy--;var f=x.responseText.split('|');if(f.length==5){st={g:f[0],b:f[1],n:+f[2],role:+f[3],pl:+f[4]};draw();}};
+ x.onload=function(){busy--;if(x.responseText!=last){last=x.responseText;lively();}else quiet++;var f=x.responseText.split('|');if(f.length==5){st={g:f[0],b:f[1],n:+f[2],role:+f[3],pl:+f[4]};draw();}};
  x.onerror=function(){busy--;document.getElementById('s').textContent='Lost the board - retrying...';};x.send();}
 function lines(g){var L=[];if(g=='ttt')return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
  for(var r=0;r<6;r++)for(var c=0;c<7;c++)[[0,1],[1,0],[1,1],[1,-1]].forEach(function(d){var l=[];
@@ -37,5 +41,5 @@ function draw(){var B=document.getElementById('b'),w=winner(),full=st.b.indexOf(
  var m=st.role==0?'Room '+room+' is full - watching':st.pl<2?'Room '+room+': waiting for your friend to join...':
   w?(w.p==st.role?'You win!':'You lose'):full?'Draw':(st.n%2==st.role-1?'Your turn ('+you+')':'Friend\'s turn...');
  document.getElementById('s').textContent=m;document.getElementById('again').style.display=(w||full)&&st.role?'inline-block':'none';}
-function tap(i){if(!st||st.role==0||st.pl<2||winner()||st.n%2!=st.role-1)return;act('&m='+(st.g=='c4'?i%7:i));}
+function tap(i){if(!st||st.role==0||st.pl<2||winner()||st.n%2!=st.role-1)return;lively();act('&m='+(st.g=='c4'?i%7:i));}
 </script></body></html>

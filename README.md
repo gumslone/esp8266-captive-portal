@@ -52,9 +52,12 @@ init.lua            boot: 2 s abort window, compile missing .lc (then delete tha
                     module's .lua - only .lc stay on the device), then captive_portal
 config.lua          your settings (SSID, credentials, admin password, mode)
 captive_portal.lua  entry: bring up AP, start DNS + HTTP
-cp_util.lua         helpers + settings persistence (portal_config.lua)
+cp_util.lua         small helpers the HTTP server keeps loaded
+cp_cfg.lua          settings load/save (portal_config.lua); boot and admin save only
 cp_dns.lua          DNS catch-all (steers clients to the portal)
-cp_http.lua         HTTP server (guest side; streams pages and files)
+cp_http.lua         HTTP server (guest side; streams pages and files; "503 busy"
+                    when free heap is low)
+cp_login.lua        guest login check, precheck hook, failed-login log (per request)
 api_*.lua           guest APIs for the shared pages, one small module per feature
                     (gb guestbook, px pixel wall, mp 2-phone games, bz buzzer, ch chat,
                     dev LED colour + phone count); loaded per request like adm_*.lua

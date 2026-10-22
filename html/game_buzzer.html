@@ -12,19 +12,23 @@ box-shadow:0 10px 0 #7f1d1d;touch-action:manipulation}#bz:active{transform:trans
 <div class="c"><button id="hb" onclick="act('&next=1')">Next round</button><button id="hc" onclick="act('&host=1')">I'm the quizmaster</button></div>
 <a href="/">&larr; back</a>
 <script>
-var me,st={r:0},busy=0,mine=-1;
+var me,st={r:0},busy=0,mine=-1,last='';
 try{me=localStorage.duelId;document.getElementById('n').value=localStorage.gbn||'';}catch(e){}
 if(!me){me=Math.random().toString(36).slice(2,10);try{localStorage.duelId=me;}catch(e){}}
 function act(q){busy++;var x=new XMLHttpRequest();x.open('GET','/api/bz?me='+me+q);
- x.onload=function(){busy--;var f=x.responseText.split('|');if(f.length==4){st={r:+f[0],host:f[1]=='1',hasHost:f[2]=='1',w:f[3]?f[3].split(','):[]};draw();}};
+ x.onload=function(){busy--;if(x.responseText!=last){last=x.responseText;lively();}else quiet++;var f=x.responseText.split('|');if(f.length==4){st={r:+f[0],host:f[1]=='1',hasHost:f[2]=='1',w:f[3]?f[3].split(','):[]};draw();}};
  x.onerror=function(){busy--;};x.send();}
 function press(){var n=document.getElementById('n').value.trim()||'guest';try{localStorage.gbn=n;}catch(e){}
- if(navigator.vibrate)navigator.vibrate(60);mine=st.r;act('&press='+st.r+'&n='+encodeURIComponent(n));}
+ if(navigator.vibrate)navigator.vibrate(60);mine=st.r;lively();act('&press='+st.r+'&n='+encodeURIComponent(n));}
 function draw(){var n=document.getElementById('n').value.trim()||'guest',w=st.w;
  document.getElementById('bz').disabled=mine==st.r||w.length>=5;
  document.getElementById('w').textContent=w.length?(w[0]==n?'You were first!':w[0]+' was first!'):'Round '+st.r+' - get ready...';
  document.getElementById('l').textContent=w.length>1?'Then: '+w.slice(1).join(', '):'';
  document.getElementById('hb').style.display=st.host?'inline-block':'none';
  document.getElementById('hc').style.display=st.host||st.hasHost?'none':'inline-block';}
-act('');setInterval(function(){if(!document.hidden&&!busy)act('');},1500);
+act('');
+// back-off: each poll is a new connection to the box. After 3 replies with
+// nothing new, skip a tick (then 2, ...), up to 3; any change or tap resets it
+var quiet=0,skip=0;function lively(){quiet=0;skip=0;}
+setInterval(function(){if(document.hidden||busy)return;if(skip>0){skip--;return;}skip=Math.min(Math.floor(quiet/3),3);act('');},1500);
 </script></body></html>

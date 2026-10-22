@@ -5,8 +5,13 @@
 -- values you set (stores nothing, imitates nothing); open mode shows the
 -- captive page immediately. The ESP8266 is an AP, not a NAT router, so this
 -- gates access to THIS device's pages - it does not forward internet.
-local U = require("cp_util")
-local st = U.load_settings()
+-- Lua GC: a full collection whenever free heap drops below 6 KB (a negative
+-- limit means "keep this much free"), plus one when an allocation fails -
+-- not just when the incremental GC gets round to it. Supported since 2.2.1.
+if node.egc then pcall(node.egc.setmode, node.egc.ON_MEM_LIMIT + node.egc.ON_ALLOC_FAILURE, -6144) end
+
+local st = require("cp_cfg").load()
+package.loaded["cp_cfg"] = nil                 -- boot-only: free it
 local IP = "192.168.1.1"
 
 print("Captive portal: AP '" .. st.ssid .. "'  login=" .. tostring(st.require_login))
