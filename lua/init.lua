@@ -32,7 +32,7 @@ boot:alarm(2000, tmr.ALARM_SINGLE, function()
 	-- compile), so it is compiled even if an older .lc exists. Only a good
 	-- compile deletes the source; a failed one removes the possibly truncated
 	-- .lc and keeps the .lua (run/require then fall back to it).
-	for _, m in ipairs({ "cp_util", "cp_dns", "cp_http", "captive_portal",
+	for _, m in ipairs({ "cp_util", "cp_dns", "cp_http", "cp_api", "captive_portal",
 		"adm_page", "adm_set", "adm_file", "adm_exec", "adm_scan" }) do
 		if not (lfs and type(lfs(m)) == "function") and file.exists(m .. ".lua") then
 			collectgarbage()

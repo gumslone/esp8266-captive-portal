@@ -1,0 +1,54 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Drums</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px;user-select:none;-webkit-user-select:none}
+h1{font-size:22px;margin:6px 0}#p{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:420px;margin:10px auto;touch-action:none}
+#p button{height:70px;border:0;border-radius:12px;color:#fff;font-size:14px;font-weight:600}#p button.h{filter:brightness(1.6)}
+#q{display:grid;grid-template-columns:52px repeat(16,1fr);gap:2px;max-width:640px;margin:10px auto;font-size:11px}
+#q span{text-align:right;padding-right:4px;color:#94a3b8;line-height:20px}#q i{height:20px;background:#1e293b;border-radius:3px}
+#q i.b{background:#334155}#q i.on{background:#2563eb}#q i.now{outline:2px solid #facc15}
+.c button{padding:7px 12px;margin:3px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:14px}.c{margin:6px 0}a{color:#94a3b8}</style></head><body>
+<h1>Drums</h1><div id="p"></div>
+<div class="c"><button id="go" onclick="toggle()">&#9654; Play</button><button onclick="clr()">Clear</button>
+<label>Tempo <input id="bpm" type="range" min="60" max="180" value="110" oninput="document.getElementById('bv').textContent=this.value"> <span id="bv">110</span></label></div>
+<div id="q"></div><a href="/">&larr; back</a>
+<script>
+var ac,noise,D=[['Kick','#dc2626'],['Snare','#ea580c'],['Hat','#ca8a04'],['Open','#65a30d'],['Clap','#0891b2'],['Tom lo','#2563eb'],['Tom hi','#7c3aed'],['Bell','#c026d3']];
+var pat=[[1,0,0,0,1,0,0,0,1,0,0,0,1,0,0,0],[0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0],[1,0,1,0,1,0,1,0,1,0,1,0,1,0,1,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]];
+var step=0,next=0,timer=null;
+function ctx(){if(!ac){ac=new (window.AudioContext||window.webkitAudioContext)();
+ noise=ac.createBuffer(1,ac.sampleRate,ac.sampleRate);var d=noise.getChannelData(0);for(var i=0;i<d.length;i++)d[i]=Math.random()*2-1;}
+ if(ac.state=='suspended')ac.resume();return ac;}
+function env(t,peak,len){var g=ac.createGain();g.gain.setValueAtTime(peak,t);g.gain.exponentialRampToValueAtTime(.001,t+len);g.connect(ac.destination);return g;}
+function osc(t,type,f0,f1,len,peak){var o=ac.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t);if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+len);
+ o.connect(env(t,peak,len));o.start(t);o.stop(t+len);}
+function hiss(t,type,f,len,peak){var s=ac.createBufferSource(),fl=ac.createBiquadFilter();s.buffer=noise;fl.type=type;fl.frequency.value=f;
+ s.connect(fl);fl.connect(env(t,peak,len));s.start(t);s.stop(t+len);}
+function hit(i,t){ctx();t=t||ac.currentTime;
+ if(i==0)osc(t,'sine',150,40,.4,1);
+ else if(i==1){hiss(t,'highpass',1000,.2,.6);osc(t,'triangle',180,0,.1,.4);}
+ else if(i==2)hiss(t,'highpass',7000,.05,.3);
+ else if(i==3)hiss(t,'highpass',7000,.3,.25);
+ else if(i==4){for(var k=0;k<3;k++)hiss(t+k*.012,'bandpass',1500,.12,.5);}
+ else if(i==5)osc(t,'sine',130,70,.35,.8);
+ else if(i==6)osc(t,'sine',220,120,.3,.7);
+ else{osc(t,'square',540,0,.3,.12);osc(t,'square',800,0,.3,.12);}
+ var b=document.getElementById('d'+i);b.classList.add('h');setTimeout(function(){b.classList.remove('h');},100);}
+function build(){var h='';D.forEach(function(d,i){h+='<button id="d'+i+'" style="background:'+d[1]+'">'+d[0]+'<br><small>'+(i+1)+'</small></button>';});
+ document.getElementById('p').innerHTML=h;
+ h='';D.forEach(function(d,r){h+='<span>'+d[0]+'</span>';for(var s=0;s<16;s++)h+='<i id="q'+r+'_'+s+'" class="'+(s%4==0?'b ':'')+(pat[r][s]?'on':'')+'" onclick="cell('+r+','+s+')"></i>';});
+ document.getElementById('q').innerHTML=h;}
+function cell(r,s){pat[r][s]=pat[r][s]?0:1;document.getElementById('q'+r+'_'+s).classList.toggle('on',!!pat[r][s]);}
+function clr(){pat.forEach(function(r){for(var s=0;s<16;s++)r[s]=0;});build();}
+// look-ahead scheduler: queue steps ~0.1s ahead on the audio clock (steady even if timers jitter)
+function tick(){var dur=60/document.getElementById('bpm').value/4;
+ while(next<ac.currentTime+.1){var s=step;for(var r=0;r<8;r++)if(pat[r][s])hit(r,next);
+  setTimeout(function(){mark(s);},Math.max(0,(next-ac.currentTime)*1000));next+=dur;step=(step+1)%16;}}
+function mark(s){var o=document.querySelectorAll('#q i.now');for(var i=0;i<o.length;i++)o[i].classList.remove('now');
+ if(timer)for(var r=0;r<8;r++)document.getElementById('q'+r+'_'+s).classList.add('now');}
+function toggle(){ctx();var b=document.getElementById('go');
+ if(timer){clearInterval(timer);timer=null;mark(0);b.innerHTML='&#9654; Play';}
+ else{step=0;next=ac.currentTime+.05;timer=setInterval(tick,25);b.innerHTML='&#9632; Stop';}}
+document.getElementById('p').addEventListener('pointerdown',function(e){var b=e.target.closest('button');if(b){e.preventDefault();hit(+b.id.slice(1));}});
+document.onkeydown=function(e){var n=+e.key;if(n>=1&&n<=8&&!e.repeat)hit(n-1);if(e.key==' '){e.preventDefault();toggle();}};
+build();
+</script></body></html>

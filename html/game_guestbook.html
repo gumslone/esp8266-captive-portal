@@ -1,0 +1,26 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Guestbook</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px}
+h1{font-size:22px;margin:6px 0}form{max-width:420px;margin:10px auto;display:flex;flex-wrap:wrap;gap:6px}
+input{padding:9px;border:0;border-radius:8px;background:#1e293b;color:#e2e8f0;font-size:15px}#n{width:30%}#m{flex:1}
+button{padding:9px 14px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}
+#l{max-width:420px;margin:12px auto;text-align:left}#l div{background:#1e293b;border-radius:10px;padding:9px 12px;margin:6px 0;word-wrap:break-word}
+#l b{color:#93c5fd;display:block;font-size:13px}#s{color:#94a3b8;font-size:13px;min-height:18px}a{color:#94a3b8}</style></head><body>
+<h1>Guestbook</h1><div id="s">Leave a note for everyone on this Wi-Fi</div>
+<form onsubmit="post();return false"><input id="n" maxlength="20" placeholder="Name"><input id="m" maxlength="120" placeholder="Your message"><button>Post</button></form>
+<div id="l"></div><a href="/">&larr; back</a>
+<script>
+function show(t){var L=document.getElementById('l');L.innerHTML='';
+ var rows=t.split('\n').filter(function(x){return x;}).reverse();
+ if(!rows.length)L.innerHTML='<p style="text-align:center;color:#94a3b8">No notes yet - be the first!</p>';
+ rows.forEach(function(r){var i=r.indexOf('|'),d=document.createElement('div'),b=document.createElement('b');   // textContent: never HTML
+  b.textContent=r.slice(0,i);d.appendChild(b);d.appendChild(document.createTextNode(r.slice(i+1)));L.appendChild(d);});}
+function load(body){var x=new XMLHttpRequest();x.open(body?'POST':'GET','/api/gb');
+ x.onload=function(){if(x.status==200)show(x.responseText);else document.getElementById('s').textContent='Could not reach the board';};
+ if(body)x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');x.send(body||null);}
+function post(){var m=document.getElementById('m');if(!m.value.trim())return;
+ try{localStorage.gbn=document.getElementById('n').value;}catch(e){}
+ load('n='+encodeURIComponent(document.getElementById('n').value)+'&m='+encodeURIComponent(m.value));m.value='';}
+try{document.getElementById('n').value=localStorage.gbn||'';}catch(e){}
+load();setInterval(function(){if(!document.hidden)load();},10000);
+</script></body></html>

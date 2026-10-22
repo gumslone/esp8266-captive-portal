@@ -44,7 +44,7 @@ def src(name):
     return os.path.join(ROOT, name)
 
 CORE = ["init.lua", "config.lua", "captive_portal.lua", "cp_util.lua", "cp_dns.lua",
-        "cp_http.lua", "adm_page.lua", "adm_set.lua", "adm_file.lua",
+        "cp_http.lua", "cp_api.lua", "adm_page.lua", "adm_set.lua", "adm_file.lua",
         "adm_exec.lua", "adm_scan.lua", "admin_login.html"]
 OPTIONAL = ["reset_button.lua", "sound.mp3", "audio.mp3"]
 GZIPPED = ["admin.html", "admin.js", "style.css", "portal_war.html"]

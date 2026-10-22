@@ -190,6 +190,19 @@ function H.start(st, IP)
 				return
 			end
 
+			-- shared guest pages (guestbook, pixel canvas, 2-player, LED): same
+			-- gate as the games; cp_api.lua is loaded for this request only
+			if string.find(path, "^/api/") then
+				if st.require_login and not (ip and allowed[ip]) and not isadmin then
+					k:send("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n")
+					return
+				end
+				local api = require("cp_api")
+				package.loaded["cp_api"] = nil
+				api(S, { k = k, path = path, G = G, isadmin = isadmin, cs = cs })
+				return
+			end
+
 			-- explicit file (assets). Guests: whitelist only. Admin: any file -
 			local fname = path ~= "/" and U.safe_name(string.gsub(path, "^/", "")) or ""
 			-- any .mp3 is public too, so captive pages can play their own sounds;

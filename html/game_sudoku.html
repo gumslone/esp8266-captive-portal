@@ -1,0 +1,38 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Sudoku</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px}
+h1{font-size:22px;margin:6px 0}#b{display:grid;grid-template-columns:repeat(9,1fr);max-width:360px;margin:10px auto;border:2px solid #94a3b8}
+#b i{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:20px;background:#1e293b;border:1px solid #334155;color:#93c5fd;cursor:pointer}
+#b i.g{color:#e2e8f0;font-weight:700}#b i.r{border-right:2px solid #94a3b8}#b i.d{border-bottom:2px solid #94a3b8}
+#b i.s{background:#1d4ed8}#b i.x{color:#f87171}#b i.h{background:#273449}
+#k button{width:34px;height:40px;margin:2px;border:0;border-radius:8px;background:#334155;color:#fff;font-size:18px}
+.c button{padding:7px 12px;margin:3px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:14px}#s{min-height:22px}a{color:#94a3b8}</style></head><body>
+<h1>Sudoku</h1><div class="c"><button onclick="start(36)">Easy</button><button onclick="start(46)">Medium</button><button onclick="start(54)">Hard</button></div>
+<div id="s"></div><div id="b"></div><div id="k"></div><a href="/">&larr; back</a>
+<script>
+var sol,giv,cur,sel=-1;
+function ok(g,i,n){var r=Math.floor(i/9),c=i%9,br=r-r%3,bc=c-c%3;
+ for(var k=0;k<9;k++)if(g[r*9+k]==n||g[k*9+c]==n||g[(br+Math.floor(k/3))*9+bc+k%3]==n)return false;return true;}
+function shuf(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1)),t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function fill(g){var i=g.indexOf(0);if(i<0)return true;var ns=shuf([1,2,3,4,5,6,7,8,9]);
+ for(var k=0;k<9;k++)if(ok(g,i,ns[k])){g[i]=ns[k];if(fill(g))return true;}g[i]=0;return false;}
+function count(g,lim){var i=g.indexOf(0);if(i<0)return 1;var n=0;   // number of solutions, stops at lim
+ for(var v=1;v<=9&&n<lim;v++)if(ok(g,i,v)){g[i]=v;n+=count(g,lim-n);}g[i]=0;return n;}
+function start(holes){sol=[];for(var i=0;i<81;i++)sol.push(0);fill(sol);giv=sol.slice();
+ var order=shuf(Array.from({length:81},function(_,i){return i;})),dug=0;
+ for(var j=0;j<81&&dug<holes;j++){var p=order[j],v=giv[p];giv[p]=0;if(count(giv.slice(),2)==1)dug++;else giv[p]=v;}   // keep it unique
+ cur=giv.slice();sel=-1;draw();}
+function draw(){var h='',done=true;for(var i=0;i<81;i++){var r=Math.floor(i/9),c=i%9,v=cur[i],cl=[];
+ if(giv[i])cl.push('g');if(c==2||c==5)cl.push('r');if(r==2||r==5)cl.push('d');
+ if(i==sel)cl.push('s');else if(sel>=0&&cur[sel]&&v==cur[sel])cl.push('h');
+ if(v&&!giv[i]){cur[i]=0;if(!ok(cur,i,v))cl.push('x');cur[i]=v;}if(v!=sol[i])done=false;
+ h+='<i class="'+cl.join(' ')+'" onclick="pick('+i+')">'+(v||'')+'</i>';}
+ document.getElementById('b').innerHTML=h;
+ document.getElementById('s').textContent=done?'Solved! Well done.':'Tap a cell, then a number';}
+function pick(i){sel=i;draw();}
+function put(n){if(sel<0||giv[sel])return;cur[sel]=n;draw();}
+var k='';for(var n=1;n<=9;n++)k+='<button onclick="put('+n+')">'+n+'</button>';
+document.getElementById('k').innerHTML=k+'<button onclick="put(0)">&#9003;</button>';
+document.onkeydown=function(e){var n=+e.key;if(e.key>='0'&&e.key<='9')put(n);else if(e.key=='Backspace')put(0);};
+start(36);
+</script></body></html>

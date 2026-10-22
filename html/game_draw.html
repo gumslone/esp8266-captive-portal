@@ -1,0 +1,27 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no"><title>Draw</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px;user-select:none;-webkit-user-select:none}
+h1{font-size:22px;margin:6px 0}canvas{background:#fff;border-radius:10px;width:min(94vw,600px);height:min(94vw,600px);touch-action:none;display:block;margin:8px auto}
+#c i{display:inline-block;width:28px;height:28px;margin:3px;border-radius:50%;border:2px solid #334155;vertical-align:middle}#c i.s{border-color:#fff;transform:scale(1.15)}
+.c button{padding:7px 12px;margin:3px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:14px}a{color:#94a3b8}</style></head><body>
+<h1>Draw</h1><div id="c"></div>
+<div class="c"><button onclick="size(3)">Fine</button><button onclick="size(8)">Medium</button><button onclick="size(20)">Thick</button>
+<button onclick="undo()">Undo</button><button onclick="clr()">Clear</button><a id="dl" download="drawing.png"><button onclick="save()">Save</button></a></div>
+<canvas id="v" width="600" height="600"></canvas><a href="/">&larr; back</a>
+<script>
+var V=document.getElementById('v'),x=V.getContext('2d'),col='#0f172a',w=8,last={},hist=[];
+var C=['#0f172a','#ffffff','#dc2626','#ea580c','#facc15','#16a34a','#0891b2','#2563eb','#7c3aed','#db2777','#78350f','#94a3b8'];
+document.getElementById('c').innerHTML=C.map(function(c,i){return '<i style="background:'+c+'" onclick="pick('+i+',this)"'+(i?'':' class="s"')+'></i>';}).join('');
+function pick(i,e){col=C[i];var o=document.querySelectorAll('#c i');for(var k=0;k<o.length;k++)o[k].className='';e.className='s';}
+function size(n){w=n;}
+function clr(){keep();x.fillStyle='#fff';x.fillRect(0,0,600,600);}
+function keep(){hist.push(x.getImageData(0,0,600,600));if(hist.length>10)hist.shift();}
+function undo(){if(hist.length)x.putImageData(hist.pop(),0,0);}
+function save(){document.getElementById('dl').href=V.toDataURL('image/png');}
+function pos(e){var r=V.getBoundingClientRect();return [(e.clientX-r.left)*600/r.width,(e.clientY-r.top)*600/r.height];}
+function line(a,b){x.strokeStyle=col;x.lineWidth=w;x.lineCap=x.lineJoin='round';x.beginPath();x.moveTo(a[0],a[1]);x.lineTo(b[0],b[1]);x.stroke();}
+V.addEventListener('pointerdown',function(e){e.preventDefault();V.setPointerCapture(e.pointerId);keep();var p=pos(e);last[e.pointerId]=p;line(p,p);});
+V.addEventListener('pointermove',function(e){var a=last[e.pointerId];if(!a)return;var p=pos(e);line(a,p);last[e.pointerId]=p;});
+function up(e){delete last[e.pointerId];}V.addEventListener('pointerup',up);V.addEventListener('pointercancel',up);
+x.fillStyle='#fff';x.fillRect(0,0,600,600);
+</script></body></html>

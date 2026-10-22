@@ -55,6 +55,8 @@ captive_portal.lua  entry: bring up AP, start DNS + HTTP
 cp_util.lua         helpers + settings persistence (portal_config.lua)
 cp_dns.lua          DNS catch-all (steers clients to the portal)
 cp_http.lua         HTTP server (guest side; streams pages and files)
+cp_api.lua          guest APIs for the shared pages (guestbook, pixel wall, 2-phone
+                    games, LED colour); loaded per request like adm_*.lua
 adm_*.lua           admin actions, one small module loaded per admin request
 login.html          guest login page (login mode)
 admin_login.html    admin password page
@@ -68,8 +70,14 @@ portal_*.html       more captive page designs: minimal, info, event, offline, wa
                     plays assets/audio.mp3 (uploaded as audio.mp3)
 game_*.html         small offline games: tic-tac-toe, 4 in a row, memory, snake, 2048,
                     minesweeper, 15 puzzle, simon, whack-a-mole, breakout, hangman, rock-paper-scissors,
-                    flappy, lights out (some vs computer
-                    or 2 players); sent gzipped, open to guests after login.
+                    flappy, lights out, sudoku (some vs computer or 2 players);
+                    music and art: piano, drums, theremin, draw (Web Audio /
+                    canvas, all in the browser); shared on this Wi-Fi: 2 phones
+                    (tic-tac-toe / 4 in a row between two phones), guestbook,
+                    pixel wall, light the box (sets the WS2812 colour).
+                    Sent gzipped, open to guests after login. Admin clears the
+                    guestbook / wall at /api/gb?clear=1 and /api/px?clear=1
+                    (or deletes guestbook.txt / pixels.txt)
                     portal_games.html is a captive page that links to them
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)

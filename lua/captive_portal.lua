@@ -37,16 +37,23 @@ local function led_setup()
 		local dpin = st.led                    -- data pin (NodeMCU index)
 		local pwr = st.led_power               -- optional pin that powers the LED
 		if pwr then gpio.mode(pwr, gpio.OUTPUT); gpio.write(pwr, gpio.HIGH) end  -- keep powered
-		if ws2812.write_pin then               -- patched firmware: data on any pin.
-			-- a single bit-banged frame can glitch while WiFi runs (interrupts
-			-- stretch the pulses), which most hurts the all-zero "off" frame -
-			-- send "off" a few times so a clean frame lands.
-			on  = function() ws2812.write_pin(dpin, lit) end
-			off = function() for _ = 1, 3 do ws2812.write_pin(dpin, dark) end end
+		local send
+		if ws2812.write_pin then               -- patched firmware: data on any pin
+			send = function(s) ws2812.write_pin(dpin, s) end
 		else                                   -- stock module: UART, data fixed to D4/GPIO2
 			if dpin ~= 4 then print("LED: this firmware drives ws2812 on D4/GPIO2 only") end
 			ws2812.init()
-			on, off = function() ws2812.write(lit) end, function() ws2812.write(dark) end
+			send = ws2812.write
+		end
+		-- a single bit-banged frame can glitch while WiFi runs (interrupts
+		-- stretch the pulses), which most hurts the all-zero "off" frame -
+		-- send "off" a few times so a clean frame lands.
+		on  = function() send(lit) end
+		off = function() for _ = 1, 3 do send(dark) end end
+		-- guests' LED page (/api/led): show a colour until the next blink
+		function portal_led(r, g, b)
+			local f = string.char(g, r, b)
+			for _ = 1, (r + g + b == 0) and 3 or 1 do send(f) end
 		end
 	elseif st.led then                         -- plain LED on a GPIO pin
 		local pin = st.led

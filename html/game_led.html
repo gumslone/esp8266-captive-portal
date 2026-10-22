@@ -1,0 +1,17 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Light</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px}
+h1{font-size:22px;margin:6px 0}#c{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-width:300px;margin:14px auto}
+#c button{height:70px;border:0;border-radius:14px;color:#fff;font-size:14px;font-weight:600;text-shadow:0 1px 2px #000}
+#s{color:#94a3b8;min-height:22px}a{color:#94a3b8}</style></head><body>
+<h1>Light up the box</h1><div id="s">Pick a colour - the light on the Wi-Fi box changes</div><div id="c"></div>
+<p><input type="color" id="pk" value="#ff8800" onchange="set(this.value.slice(1))"> any colour</p><a href="/">&larr; back</a>
+<script>
+// moderate levels: a WS2812 at full white is blinding and draws ~60 mA
+var C=[['Red','600000'],['Orange','602000'],['Yellow','503800'],['Green','006000'],['Cyan','004848'],['Blue','000070'],['Purple','380060'],['Pink','601838'],['White','404040']];
+document.getElementById('c').innerHTML=C.map(function(c){var h=c[1],s='#'+h.replace(/../g,function(v){return ('0'+Math.min(255,parseInt(v,16)*4).toString(16)).slice(-2);});
+ return '<button style="background:'+s+'" onclick="set(\''+h+'\')">'+c[0]+'</button>';}).join('')+'<button style="background:#1e293b;grid-column:2" onclick="set(\'000000\')">Off</button>';
+function set(h){var x=new XMLHttpRequest();x.open('GET','/api/led?c='+h);
+ x.onload=function(){document.getElementById('s').textContent=x.responseText=='ok'?(h=='000000'?'Light off':'Done - look at the box!'):x.responseText;};
+ x.onerror=function(){document.getElementById('s').textContent='Could not reach the board';};x.send();}
+</script></body></html>

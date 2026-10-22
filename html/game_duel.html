@@ -1,0 +1,41 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>2 Phones</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:12px}
+h1{font-size:22px;margin:6px 0}input,select{padding:9px;border:0;border-radius:8px;background:#1e293b;color:#e2e8f0;font-size:16px;margin:4px}
+#code{width:90px;text-transform:uppercase;text-align:center;letter-spacing:3px}
+button{padding:9px 14px;margin:4px;border:0;border-radius:8px;background:#2563eb;color:#fff;font-size:15px}
+#b{display:grid;gap:6px;margin:12px auto}#b i{aspect-ratio:1;background:#1e293b;border-radius:10px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+#b.ttt{grid-template-columns:repeat(3,1fr);max-width:270px}#b.ttt i{font-size:44px;font-style:normal;font-weight:700}
+#b.c4{grid-template-columns:repeat(7,1fr);max-width:350px;background:#1d4ed8;padding:6px;border-radius:12px;gap:4px}#b.c4 i{border-radius:50%;background:#0f172a}
+#b i.p1{color:#f87171}#b i.p2{color:#facc15}#b.c4 i.p1{background:#ef4444}#b.c4 i.p2{background:#facc15}#b i.w{box-shadow:0 0 0 3px #fff inset}
+#s{font-size:17px;min-height:24px;margin:6px}#g{display:none}a{color:#94a3b8}</style></head><body>
+<h1>2 Phones</h1>
+<div id="lobby"><p>Play against a friend on another phone.<br>Both enter the same room code.</p>
+<select id="game"><option value="ttt">Tic-Tac-Toe</option><option value="c4">4 in a Row</option></select><br>
+<input id="code" maxlength="6"><br><button onclick="join()">Play</button></div>
+<div id="g"><div id="s"></div><div id="b"></div><button id="again" onclick="act('&new=1')" style="display:none">Rematch</button>
+<button onclick="leave()">Leave</button></div>
+<a href="/">&larr; back</a>
+<script>
+var me,room,st=null,poll=null,busy=0;
+try{me=localStorage.duelId;}catch(e){}if(!me){me=Math.random().toString(36).slice(2,10);try{localStorage.duelId=me;}catch(e){}}
+document.getElementById('code').value=Math.random().toString(36).slice(2,6).toUpperCase();
+function join(){room=document.getElementById('code').value.toUpperCase().replace(/[^A-Z0-9]/g,'');if(!room)return;
+ document.getElementById('lobby').style.display='none';document.getElementById('g').style.display='block';
+ act('&g='+document.getElementById('game').value);poll=setInterval(function(){if(!document.hidden&&!busy)act('');},1500);}
+function leave(){clearInterval(poll);st=null;document.getElementById('g').style.display='none';document.getElementById('lobby').style.display='block';}
+function act(q){busy++;var x=new XMLHttpRequest();x.open('GET','/api/mp?r='+room+'&me='+me+q);
+ x.onload=function(){busy--;var f=x.responseText.split('|');if(f.length==5){st={g:f[0],b:f[1],n:+f[2],role:+f[3],pl:+f[4]};draw();}};
+ x.onerror=function(){busy--;document.getElementById('s').textContent='Lost the board - retrying...';};x.send();}
+function lines(g){var L=[];if(g=='ttt')return [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+ for(var r=0;r<6;r++)for(var c=0;c<7;c++)[[0,1],[1,0],[1,1],[1,-1]].forEach(function(d){var l=[];
+  for(var k=0;k<4;k++){var y=r+d[0]*k,x=c+d[1]*k;if(y<0||y>5||x<0||x>6)return;l.push(y*7+x);}L.push(l);});return L;}
+function winner(){var w=null;lines(st.g).forEach(function(l){var v=st.b[l[0]];if(v!='.'&&l.every(function(i){return st.b[i]==v;}))w={p:+v,l:l};});return w;}
+function draw(){var B=document.getElementById('b'),w=winner(),full=st.b.indexOf('.')<0,h='',sym=['','X','O'];B.className=st.g;
+ for(var i=0;i<st.b.length;i++){var v=st.b[i];h+='<i class="'+(v!='.'?'p'+v:'')+(w&&w.l.indexOf(i)>=0?' w':'')+'" onclick="tap('+i+')">'+(st.g=='ttt'&&v!='.'?sym[v]:'')+'</i>';}
+ B.innerHTML=h;var you=st.role?(st.g=='ttt'?sym[st.role]:['','red','yellow'][st.role]):'';
+ var m=st.role==0?'Room '+room+' is full - watching':st.pl<2?'Room '+room+': waiting for your friend to join...':
+  w?(w.p==st.role?'You win!':'You lose'):full?'Draw':(st.n%2==st.role-1?'Your turn ('+you+')':'Friend\'s turn...');
+ document.getElementById('s').textContent=m;document.getElementById('again').style.display=(w||full)&&st.role?'inline-block':'none';}
+function tap(i){if(!st||st.role==0||st.pl<2||winner()||st.n%2!=st.role-1)return;act('&m='+(st.g=='c4'?i%7:i));}
+</script></body></html>
