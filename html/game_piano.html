@@ -6,11 +6,17 @@ h1{font-size:22px;margin:6px 0}.c{margin:6px 0}.c button,.c select{padding:7px 1
 .w,.b{position:absolute;top:0;border-radius:0 0 6px 6px;box-sizing:border-box}
 .w{height:100%;background:#f8fafc;border:1px solid #64748b;z-index:1}.b{height:60%;background:#0f172a;border:1px solid #000;z-index:2}
 .w.p{background:#93c5fd}.b.p{background:#2563eb}.w span{position:absolute;bottom:6px;left:0;right:0;font-size:11px;color:#64748b}
-#s{color:#94a3b8;min-height:20px;font-size:14px}a{color:#94a3b8}</style></head><body>
+#s{color:#94a3b8;min-height:20px;font-size:14px}a{color:#94a3b8}#fs,.bk{display:none}.bk{padding:5px 10px;text-decoration:none;font-size:18px}
+/* sideways phone (or full screen): the keyboard takes the whole screen */
+@media (orientation:landscape) and (max-height:500px){body{padding:4px 6px}h1,#s,body>a{display:none}
+.c{margin:0 0 4px}.c button,.c select{padding:5px 10px;margin:2px}.bk{display:inline}#k{height:calc(100vh - 44px);height:calc(100dvh - 44px);max-width:none;margin:0}}
+body.fs{padding:4px 6px}body.fs h1,body.fs #s,body.fs>a{display:none}body.fs .c{margin:0 0 4px}body.fs .bk{display:inline}
+body.fs #k{height:calc(100vh - 44px);max-width:none;margin:0}</style></head><body>
 <h1>Piano</h1>
-<div class="c"><button onclick="oct(-1)">Oct &minus;</button><button onclick="oct(1)">Oct +</button>
+<div class="c"><a class="bk" href="/">&larr;</a><button onclick="oct(-1)">Oct &minus;</button><button onclick="oct(1)">Oct +</button>
 <select id="ins"><option value="piano">Piano</option><option value="organ">Organ</option><option value="synth">Synth</option></select>
-<button id="rec" onclick="rec()">&#9679; Rec</button><button onclick="replay()">&#9654; Play</button></div>
+<button id="rec" onclick="rec()">&#9679; Rec</button><button onclick="replay()">&#9654; Play</button>
+<button id="fs" onclick="full()" title="Full screen">&#x26F6;</button></div>
 <div id="s">Tap or slide over the keys</div><div id="k"></div><a href="/">&larr; back</a>
 <script>
 var ac,base=48,keys=[],voices={},down=0,recording=false,song=[],t0=0;
@@ -50,5 +56,15 @@ function rec(){recording=!recording;var b=document.getElementById('rec');b.class
 function replay(){if(recording)rec();if(!song.length){msg('Nothing recorded yet');return;}msg('Playing...');
  song.forEach(function(s){setTimeout(function(){s[2]?noteOn(s[1]):noteOff(s[1]);},s[0]);});
  setTimeout(function(){msg('Done');},song[song.length-1][0]+400);}
+// full screen + sideways where the browser allows it (Android Chrome, iPad);
+// iPhone Safari has neither for pages, so the button stays hidden there and
+// turning the phone gives the big keyboard through the landscape CSS
+var D=document.documentElement,FS=D.requestFullscreen||D.webkitRequestFullscreen;
+function full(){if(document.fullscreenElement||document.webkitFullscreenElement){(document.exitFullscreen||document.webkitExitFullscreen).call(document);return;}
+ var p=FS.call(D);if(p&&p.then)p.then(function(){if(screen.orientation&&screen.orientation.lock)screen.orientation.lock('landscape').catch(function(){});}).catch(function(){});}
+function fsChange(){document.body.classList.toggle('fs',!!(document.fullscreenElement||document.webkitFullscreenElement));}
+document.addEventListener('fullscreenchange',fsChange);document.addEventListener('webkitfullscreenchange',fsChange);
+if(FS)document.getElementById('fs').style.display='inline-block';
+if(innerHeight>innerWidth&&innerWidth<600)msg('Tip: turn your phone sideways for a bigger keyboard');
 build();
 </script></body></html>
