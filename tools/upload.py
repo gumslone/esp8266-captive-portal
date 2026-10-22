@@ -11,6 +11,8 @@ first (./flash.sh or ./bugzapper.sh), then run this.
   tools/upload.py --dry-run           # show what would run, touch nothing
   tools/upload.py --no-minify         # upload readable Lua (e.g. to debug on device)
   tools/upload.py --lfs               # modules -> lfs.img (needs LFS firmware + tools/luac.cross)
+  tools/upload.py --dist dist/        # no board: write the ready-to-upload files to a folder
+                                      # (what a release zip contains)
 
 Lua files (all but config.lua, which you edit by hand) are minified with luamin
 first - about half the size, so faster uploads and less flash/compile work; the
@@ -24,6 +26,7 @@ import argparse
 import glob
 import gzip
 import os
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -99,6 +102,24 @@ def find_port():
         if hits:
             return hits[0]
     return None
+
+
+DIST_README = """ESP8266 captive portal - ready-to-upload files
+
+Upload EVERY file in this folder to the board's flash, under the same names
+(the device filesystem is flat), with any NodeMCU uploader: BugZapper,
+ESPlorer, nodemcu-uploader, nodemcu-tool. Lua files are already minified and
+pages pre-gzipped (*.gz), so nothing has to be built first.
+
+1. Flash NodeMCU 2.2.1 (the release has the firmware .bin), then upload these files.
+2. Edit config.lua before uploading (or later via the /admin page): network
+   name, guest login, ADMIN PASSWORD, LED pins.
+3. Restart. On the first boot init.lua compiles the .lua modules to .lc
+   (and deletes the .lua) - give it ~20 s.
+4. Join the Wi-Fi and open http://192.168.1.1/admin
+
+From the source repo, tools/upload.py does all of this in one step.
+"""
 
 
 def minify(names, tmp):
@@ -186,6 +207,24 @@ def uploaded(upload_args):
     return [s.split(":")[-1] for s in upload_args[1:]]
 
 
+def make_dist(out):
+    """The exact files an upload sends, under their device names, in out/."""
+    os.makedirs(out, exist_ok=True)
+    with tempfile.TemporaryDirectory() as tmp:
+        specs = file_specs(None, tmp)
+        lua = [s.split(":")[-1] for s in specs if s.endswith(".lua") and not s.endswith(":config.lua")]
+        if not all(os.path.dirname(s.split(":")[0]) == tmp for s in specs if s.split(":")[-1] in lua):
+            sys.exit("--dist needs luamin (node + npm i -g luamin): a release must ship minified Lua")
+        for spec in specs:
+            local, name = spec.rsplit(":", 1)
+            shutil.copyfile(local, os.path.join(out, name))
+    with open(os.path.join(out, "README.txt"), "w") as f:
+        f.write(DIST_README)
+    names = sorted(os.listdir(out))
+    total = sum(os.path.getsize(os.path.join(out, n)) for n in names)
+    print("%d files, %d bytes -> %s" % (len(names), total, out))
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("-p", "--port", default=os.environ.get("ESPTOOL_PORT") or find_port())
@@ -196,7 +235,13 @@ def main():
                     help="put the modules into lfs.img and load it (LFS firmware + tools/luac.cross)")
     ap.add_argument("--no-restart", action="store_true", help="don't restart afterwards")
     ap.add_argument("--dry-run", action="store_true", help="print the commands only")
+    ap.add_argument("--dist", metavar="DIR",
+                    help="write the ready-to-upload files (minified, gzipped) to DIR instead")
     a = ap.parse_args()
+
+    if a.dist:
+        make_dist(a.dist)
+        return
 
     if not a.port and not a.dry_run:
         sys.exit("No serial port found - plug the board in or pass -p PORT")

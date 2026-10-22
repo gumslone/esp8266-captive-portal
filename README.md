@@ -95,6 +95,8 @@ login_*.html        more guest login designs: minimal, dark, terms (checkbox);
 
 Optional / tooling:
 ```
+tools/upload.py     upload to the board (minify + gzip + compile on boot);
+                    --dist DIR writes the same ready-to-upload files to a folder
 reset_button.lua    press RST, then hold FLASH (GPIO0/D3) right after, to clear saved settings
 flash.sh            flash the NodeMCU firmware (wraps tools/bugzapper/flash.sh)
 bugzapper.sh        BugZapper GUI: flash + serial monitor + Lua upload tab
