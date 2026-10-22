@@ -20,6 +20,8 @@ local PROBE = { ["/hotspot-detect.html"] = APPLE, ["/library/test/success.html"]
 -- admin action -> module that handles it
 local ADMIN_MOD = { admin_login = "adm_page", save_settings = "adm_set", set_page = "adm_set",
 	page_append = "adm_file", execute = "adm_exec", scan = "adm_scan", settings = "adm_page" }
+-- /api/<x> for the shared guest pages -> module that handles it
+local API_MOD = { gb = "api_gb", px = "api_px", mp = "api_mp", bz = "api_bz", led = "api_dev", n = "api_dev" }
 
 function H.start(st, IP)
 	local allowed = {}       -- allowed[ip]  = true : guest passed the gate
@@ -50,6 +52,10 @@ function H.start(st, IP)
 		"\r\nCache-Control: no-store, no-cache, must-revalidate\r\nConnection: close\r\n\r\n"
 
 	function S.send_html(k, body) k:send(HTML .. body) end
+	function S.txt(k, body)                       -- plain-text reply (api_*.lua)
+		k:send("HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8" ..
+			"\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n" .. body)
+	end
 
 	-- send an HTML template, STREAMED: the "sent" handler reads ~1.4 KB of
 	-- whole lines at a time and substitutes {{TOKENS}} in just that piece, so a
@@ -190,16 +196,19 @@ function H.start(st, IP)
 				return
 			end
 
-			-- shared guest pages (guestbook, pixel canvas, 2-player, LED): same
-			-- gate as the games; cp_api.lua is loaded for this request only
-			if string.find(path, "^/api/") then
-				if st.require_login and not (ip and allowed[ip]) and not isadmin then
-					k:send("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n")
+			-- shared guest pages (guestbook, pixel wall, 2-player, buzzer, LED):
+			-- same gate as the games; only that feature's api_*.lua is loaded,
+			-- for this request only
+			local what = string.match(path, "^/api/(%w+)$")
+			if what then
+				local amod = API_MOD[what]
+				if not amod or (st.require_login and not (ip and allowed[ip]) and not isadmin) then
+					k:send("HTTP/1.1 " .. (amod and "403 Forbidden" or "404 Not Found") .. "\r\nConnection: close\r\n\r\n")
 					return
 				end
-				local api = require("cp_api")
-				package.loaded["cp_api"] = nil
-				api(S, { k = k, path = path, G = G, ip = ip, isadmin = isadmin, cs = cs })
+				local api = require(amod)
+				package.loaded[amod] = nil
+				api(S, { k = k, what = what, G = G, ip = ip, isadmin = isadmin, cs = cs })
 				return
 			end
 
