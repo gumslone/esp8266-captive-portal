@@ -58,10 +58,12 @@ cp_dns.lua          DNS catch-all (steers clients to the portal)
 cp_http.lua         HTTP server (guest side; streams pages and files; "503 busy"
                     when free heap is low)
 cp_login.lua        guest login check, precheck hook, failed-login log (per request)
+cp_probe.lua        "internet works" replies to phones' connectivity checks (per request)
 api_*.lua           guest APIs for the shared pages, one small module per feature
                     (gb guestbook, px pixel wall, mp 2-phone games, bz buzzer, ch chat,
                     dev LED colour + phone count); loaded per request like adm_*.lua
-adm_*.lua           admin actions, one small module loaded per admin request
+adm_*.lua           admin actions, one small module loaded per admin request;
+                    adm_route picks it and checks the admin sign-in
 login.html          guest login page (login mode)
 admin_login.html    admin password page
 admin.html          admin dashboard (static, sent gzipped; admin.js fills in values)

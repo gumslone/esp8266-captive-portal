@@ -3,8 +3,9 @@
 --     substituted pages are small - no multi-KB strings built in RAM;
 --   * big assets (admin.js, style.css) and sound.mp3 stream in 1 KB chunks
 --     (admin.js / style.css as pre-gzipped .gz when present);
---   * admin routes live in small adm_*.lua modules, guest login in cp_login,
---     shared guest pages in api_*.lua; only the one a request needs is
+--   * admin routes live in small adm_*.lua modules (picked by adm_route),
+--     guest login in cp_login, shared guest pages in api_*.lua, phones'
+--     connectivity checks in cp_probe; only the one a request needs is
 --     loaded, and dropped afterwards (on an ESP-01 one big admin module did
 --     not compile, and loading it left too little heap to serve);
 --   * one set of handlers serves every connection (state in a weak table), and
@@ -14,16 +15,13 @@
 local U = require("cp_util")
 local H = {}
 
--- OS connectivity-check URLs -> the reply that means "internet works"
-local APPLE = "<HTML><HEAD><TITLE>Success</TITLE></HEAD><BODY>Success</BODY></HTML>"
-local PROBE = { ["/hotspot-detect.html"] = APPLE, ["/library/test/success.html"] = APPLE,
-	["/generate_204"] = 204, ["/gen_204"] = 204,                        -- Android / Chrome
-	["/connecttest.txt"] = "Microsoft Connect Test", ["/ncsi.txt"] = "Microsoft NCSI",
-	["/success.txt"] = "success\n" }                                    -- Firefox
+-- load a per-request module, run it, drop it again (stays out of RAM)
+local function run(m, S, x)
+	local f = require(m)
+	package.loaded[m] = nil
+	return f(S, x)
+end
 
--- admin action -> module that handles it
-local ADMIN_MOD = { admin_login = "adm_page", save_settings = "adm_set", set_page = "adm_set",
-	page_append = "adm_file", execute = "adm_exec", scan = "adm_scan", settings = "adm_page" }
 -- /api/<x> for the shared guest pages -> module that handles it
 local API_MOD = { gb = "api_gb", px = "api_px", mp = "api_mp", bz = "api_bz", ch = "api_ch", led = "api_dev", n = "api_dev" }
 local LOW_HEAP = 5120      -- free heap (after a GC) below which requests get "503 busy"
@@ -159,27 +157,17 @@ function H.start(st, IP)
 		local _, ip = k:getpeer()
 		local isadmin = ip and S.admin_ok[ip]
 
-		-- admin routes: load just the module this request needs --------
-		local mod = ADMIN_MOD[act] or (path == "/admin/upload" and method == "POST" and "adm_file")
-			or (path == "/admin" and "adm_page")
-		if mod then
-			if mod ~= "adm_page" and not isadmin then    -- sign-in/dashboard are open
-				if act == "save_settings" then S.send_page(k, cs, "admin_login.html", { ERR = "" })
-				else k:send("HTTP/1.1 403 Forbidden\r\nConnection: close\r\n\r\n") end
-				return
-			end
-			local handler = require(mod)
-			package.loaded[mod] = nil
-			handler(S, { k = k, rq = rq, method = method, path = path, act = act,
-				G = G, ip = ip, isadmin = isadmin, cs = cs })
-			return
+		local x = { k = k, rq = rq, method = method, path = path, act = act,
+			G = G, ip = ip, isadmin = isadmin, cs = cs }
+		-- admin: /admin, /admin/upload, and every action= except the guest
+		-- login. adm_route checks the sign-in and loads the one adm_*.lua
+		if path == "/admin" or path == "/admin/upload" or (act and act ~= "login") then
+			if run("adm_route", S, x) then return end
 		end
 
 		-- guest login: cp_login.lua, loaded for this request only ----------
 		if act == "login" then
-			local login = require("cp_login")
-			package.loaded["cp_login"] = nil
-			login(S, { k = k, rq = rq, G = G, ip = ip, cs = cs })
+			run("cp_login", S, x)
 			return
 		end
 
@@ -193,9 +181,8 @@ function H.start(st, IP)
 				k:send("HTTP/1.1 " .. (amod and "403 Forbidden" or "404 Not Found") .. "\r\nConnection: close\r\n\r\n")
 				return
 			end
-			local api = require(amod)
-			package.loaded[amod] = nil
-			api(S, { k = k, what = what, G = G, ip = ip, isadmin = isadmin, cs = cs })
+			x.what = what
+			run(amod, S, x)
 			return
 		end
 
@@ -215,14 +202,10 @@ function H.start(st, IP)
 			return
 		end
 
-		-- logged-in guest: answer the OS connectivity checks with "online",
-		-- so the phone closes its sign-in sheet (before login they get the
-		-- portal/login page, which is what makes the sheet appear)
-		if st.require_login and ip and allowed[ip] then
-			local ok = PROBE[path]
-			if ok == 204 then k:send("HTTP/1.1 204 No Content\r\nConnection: close\r\n\r\n") return end
-			if ok then S.send_html(k, ok) return end
-		end
+		-- logged-in guest: cp_probe answers the OS connectivity checks with
+		-- "online", so the phone closes its sign-in sheet (before login they
+		-- get the portal/login page, which is what makes the sheet appear)
+		if st.require_login and ip and allowed[ip] and run("cp_probe", S, x) then return end
 
 		-- "/" and anything else (incl. OS captive-probe URLs) --------------
 		if (not st.require_login) or (ip and allowed[ip]) then S.client_page(k, cs)
