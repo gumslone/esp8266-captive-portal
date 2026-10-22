@@ -18,6 +18,16 @@ guest credentials, edits the captive page, and manages files
 > controls access to *this device's* pages — it does not forward internet to
 > clients. (That's the normal shape of an ESP8266 captive portal.)
 
+## Screenshots
+Served by the board itself, phone-sized (the shared pages - chat, pixel wall,
+2 Phones, buzzer - show several phones on the same Wi-Fi):
+
+<table>
+<tr><td align="center"><img src="docs/screenshots/menu.png" width="200" alt="Games menu (captive page)"><br><sub>Games menu (captive page)</sub></td><td align="center"><img src="docs/screenshots/login.png" width="200" alt="Guest login"><br><sub>Guest login</sub></td><td align="center"><img src="docs/screenshots/chat.png" width="200" alt="Chat between phones"><br><sub>Chat between phones</sub></td><td align="center"><img src="docs/screenshots/pixels.png" width="200" alt="Shared pixel wall"><br><sub>Shared pixel wall</sub></td></tr>
+<tr><td align="center"><img src="docs/screenshots/duel.png" width="200" alt="2 Phones: 4 in a row"><br><sub>2 Phones: 4 in a row</sub></td><td align="center"><img src="docs/screenshots/buzzer.png" width="200" alt="Quiz buzzer"><br><sub>Quiz buzzer</sub></td><td align="center"><img src="docs/screenshots/guestbook.png" width="200" alt="Guestbook"><br><sub>Guestbook</sub></td><td align="center"><img src="docs/screenshots/admin.png" width="200" alt="Admin settings"><br><sub>Admin settings</sub></td></tr>
+<tr><td align="center"><img src="docs/screenshots/piano.png" width="200" alt="Piano"><br><sub>Piano</sub></td><td align="center"><img src="docs/screenshots/drums.png" width="200" alt="Drum machine"><br><sub>Drum machine</sub></td><td align="center"><img src="docs/screenshots/sudoku.png" width="200" alt="Sudoku"><br><sub>Sudoku</sub></td></tr>
+</table>
+
 ## Why it's built this way (ESP-01 / low heap)
 The scarce resource is **heap**, not flash. So:
 * **Pages are files on flash**, served small; only tiny `{{SSID}}`/`{{ERR}}`
