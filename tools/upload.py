@@ -46,7 +46,7 @@ def src(name):
 CORE = ["init.lua", "config.lua", "captive_portal.lua", "cp_util.lua", "cp_dns.lua",
         "cp_http.lua", "adm_page.lua", "adm_set.lua", "adm_file.lua",
         "adm_exec.lua", "adm_scan.lua", "api_gb.lua", "api_px.lua", "api_mp.lua",
-        "api_bz.lua", "api_dev.lua", "admin_login.html"]
+        "api_bz.lua", "api_ch.lua", "api_dev.lua", "admin_login.html"]
 OPTIONAL = ["reset_button.lua", "sound.mp3", "audio.mp3"]
 GZIPPED = ["admin.html", "admin.js", "style.css", "portal_war.html"]
 # game pages (html/game_*.html) are sent gzipped too - no {{tokens}} in them

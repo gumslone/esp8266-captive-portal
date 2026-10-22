@@ -1,0 +1,39 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>Chat</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;padding:0;display:flex;flex-direction:column;height:100vh;height:100dvh}
+header{padding:10px 12px;display:flex;gap:8px;align-items:center;border-bottom:1px solid #1e293b}header h1{font-size:19px;margin:0;flex:1}header a{color:#94a3b8;font-size:14px}
+#n{width:110px;padding:6px 8px;border:0;border-radius:8px;background:#1e293b;color:#e2e8f0;font-size:14px}
+#l{flex:1;overflow-y:auto;padding:10px 12px}#l div{max-width:80%;margin:6px 0;padding:7px 11px;border-radius:14px;background:#1e293b;word-wrap:break-word;width:fit-content}
+#l div.me{margin-left:auto;background:#1d4ed8}#l b{display:block;font-size:12px}#l p{text-align:center;color:#64748b;font-size:13px}
+form{display:flex;gap:6px;padding:10px 12px;border-top:1px solid #1e293b}#m{flex:1;padding:10px;border:0;border-radius:10px;background:#1e293b;color:#e2e8f0;font-size:16px}
+button{padding:10px 16px;border:0;border-radius:10px;background:#2563eb;color:#fff;font-size:15px}#s{color:#f87171;font-size:12px;padding:0 12px}</style></head><body>
+<header><h1>Chat</h1><input id="n" maxlength="20" placeholder="Your name"><a href="/">&larr; back</a></header>
+<div id="l"><p>Messages from everyone on this Wi-Fi, from now on. Not saved.</p></div>
+<div id="s"></div><form onsubmit="send();return false"><input id="m" maxlength="120" placeholder="Message" autocomplete="off"><button>Send</button></form>
+<script>
+var since=-1,busy=0,MAXN=100,L=document.getElementById('l');   // -1: nothing yet (no history on open)
+var COL=['#f87171','#fb923c','#facc15','#4ade80','#22d3ee','#a78bfa','#f472b6','#93c5fd'];
+function name(){return document.getElementById('n').value.trim()||'guest';}
+function col(s){var h=0;for(var i=0;i<s.length;i++)h=(h*31+s.charCodeAt(i))|0;return COL[Math.abs(h)%COL.length];}
+function note(t){var p=document.createElement('p');p.textContent=t;L.appendChild(p);}
+function add(t){var r=t.split('\n'),top=+r[0],first=true;if(isNaN(top))return;
+ if(top<since){since=0;note('The box restarted - chat cleared');}
+ var end=L.scrollTop+L.clientHeight>=L.scrollHeight-30;
+ for(var i=1;i<r.length;i++){var f=r[i].split('|');if(f.length<3||+f[0]<=since)continue;
+  if(first&&since>=0&&+f[0]>since+1)note('Some messages were missed');first=false;  // trimmed on the box
+  var d=document.createElement('div'),b=document.createElement('b');   // textContent: never HTML
+  b.textContent=f[1];b.style.color=col(f[1]);if(f[1]==name()){d.className='me';b.style.color='#bfdbfe';}
+  d.appendChild(b);d.appendChild(document.createTextNode(f.slice(2).join('|')));L.appendChild(d);}
+ while(L.children.length>MAXN)L.removeChild(L.firstChild);              // phone keeps the newest 100
+ since=top;if(end)L.scrollTop=L.scrollHeight;}
+function req(q,body){busy++;var x=new XMLHttpRequest();x.open(body?'POST':'GET','/api/ch'+(since>=0?'?s='+since:'')+(q||''));
+ x.onload=function(){busy--;var s=document.getElementById('s');
+  if(x.status==200){s.textContent='';add(x.responseText);}else if(x.status==429){s.textContent='Slow down a little';document.getElementById('m').value=decodeURIComponent(body.split('&m=')[1]);}};
+ x.onerror=function(){busy--;document.getElementById('s').textContent='Lost the box - retrying...';};
+ if(body)x.setRequestHeader('Content-Type','application/x-www-form-urlencoded');x.send(body||null);}
+function send(){var m=document.getElementById('m');if(!m.value.trim())return;
+ try{localStorage.gbn=document.getElementById('n').value;}catch(e){}
+ req('','n='+encodeURIComponent(name())+'&m='+encodeURIComponent(m.value));m.value='';m.focus();}
+try{document.getElementById('n').value=localStorage.gbn||'';}catch(e){}
+req();setInterval(function(){if(!document.hidden&&!busy)req();},3000);
+</script></body></html>

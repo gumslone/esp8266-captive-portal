@@ -56,13 +56,14 @@ To restore (e.g. after re-flashing): upload the file below as <b>portal_config.l
 <hr><h2>Files</h2><div id="fl">Loading...</div>
 
 <hr><h2>Guest pages</h2>
-<p>Guestbook notes and the shared pixel wall. Notes are shown as plain text.</p>
+<p>Guestbook notes, the shared pixel wall and the chat. Notes are shown as plain text.</p>
 <div id="gb"></div>
 <button type="button" onclick="viewGb()">View guestbook</button>
 <button type="button" onclick="clearApi('gb','guestbook')">Clear guestbook</button>
 <canvas id="pxv" width="32" height="32" style="width:128px;height:128px;image-rendering:pixelated;display:block;margin:8px 0;background:#fff"></canvas>
 <button type="button" onclick="viewPx()">View wall</button>
 <button type="button" onclick="clearApi('px','pixel wall')">Clear wall</button>
+<button type="button" onclick="clearApi('ch','chat')">Clear chat</button>
 <button type="button" onclick="req('/api/bz?next=1&rnd='+Math.random(),function(){id('gbm').textContent='Buzzer: next round started';})">Next buzzer round</button>
 <div id="gbm" style="font-size:12px;color:#98a2b3"></div>
 

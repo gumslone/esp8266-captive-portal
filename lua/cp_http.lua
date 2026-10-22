@@ -21,7 +21,7 @@ local PROBE = { ["/hotspot-detect.html"] = APPLE, ["/library/test/success.html"]
 local ADMIN_MOD = { admin_login = "adm_page", save_settings = "adm_set", set_page = "adm_set",
 	page_append = "adm_file", execute = "adm_exec", scan = "adm_scan", settings = "adm_page" }
 -- /api/<x> for the shared guest pages -> module that handles it
-local API_MOD = { gb = "api_gb", px = "api_px", mp = "api_mp", bz = "api_bz", led = "api_dev", n = "api_dev" }
+local API_MOD = { gb = "api_gb", px = "api_px", mp = "api_mp", bz = "api_bz", ch = "api_ch", led = "api_dev", n = "api_dev" }
 
 function H.start(st, IP)
 	local allowed = {}       -- allowed[ip]  = true : guest passed the gate

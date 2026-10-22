@@ -112,7 +112,7 @@ function viewGb(){req('/api/gb?rnd='+Math.random(),function(st,t){var d=id('gb')
     a.href='javascript:;';a.textContent='delete';a.onclick=function(){req('/api/gb?del='+(i+1)+'&rnd='+Math.random(),viewGb);};
     p.appendChild(a);d.appendChild(p);});});}
 var PXC=['#ffffff','#000000','#7f7f7f','#c3c3c3','#dc2626','#f97316','#facc15','#a3e635','#16a34a','#06b6d4','#2563eb','#1e3a8a','#7c3aed','#ec4899','#92400e','#fcd5b5'];
-function viewPx(){req('/api/px?rnd='+Math.random(),function(st,t){var x=id('pxv').getContext('2d');
-  for(var i=0;i<1024;i++){x.fillStyle=PXC[parseInt((t||'')[i]||'0',16)];x.fillRect(i%32,Math.floor(i/32),1,1);}});}
+function viewPx(){req('/api/px?rnd='+Math.random(),function(st,t){var x=id('pxv').getContext('2d');t=(t||'').slice(t.indexOf('\n')+1);
+  for(var i=0;i<1024;i++){x.fillStyle=PXC[parseInt(t[i]||'0',16)];x.fillRect(i%32,Math.floor(i/32),1,1);}});}
 function clearApi(w,name){if(confirm('Clear the '+name+'? This cannot be undone.'))
-  req('/api/'+w+'?clear=1&rnd='+Math.random(),function(st){id('gbm').textContent=st==200?'Cleared the '+name:'Failed ('+st+')';if(w=='gb')viewGb();else viewPx();});}
+  req('/api/'+w+'?clear=1&rnd='+Math.random(),function(st){id('gbm').textContent=st==200?'Cleared the '+name:'Failed ('+st+')';if(w=='gb')viewGb();else if(w=='px')viewPx();});}

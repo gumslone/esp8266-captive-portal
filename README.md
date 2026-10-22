@@ -56,7 +56,7 @@ cp_util.lua         helpers + settings persistence (portal_config.lua)
 cp_dns.lua          DNS catch-all (steers clients to the portal)
 cp_http.lua         HTTP server (guest side; streams pages and files)
 api_*.lua           guest APIs for the shared pages, one small module per feature
-                    (gb guestbook, px pixel wall, mp 2-phone games, bz buzzer,
+                    (gb guestbook, px pixel wall, mp 2-phone games, bz buzzer, ch chat,
                     dev LED colour + phone count); loaded per request like adm_*.lua
 adm_*.lua           admin actions, one small module loaded per admin request
 login.html          guest login page (login mode)
@@ -76,11 +76,13 @@ game_*.html         small offline games: tic-tac-toe, 4 in a row, memory, snake,
                     canvas, all in the browser); shared on this Wi-Fi: 2 phones
                     (tic-tac-toe / 4 in a row between two phones), guestbook,
                     pixel wall, light the box (sets the WS2812 colour), quiz
+                    chat (live; a phone gets only messages from when it opened the chat
+                    and keeps the newest 100; the box keeps just ~10), quiz
                     buzzer (first press wins and lights the LED; the quizmaster
                     starts each round). The games menu shows how many phones are
                     connected. Sent gzipped, open to guests after login.
                     Guestbook: one note per phone per 30 s. Admin > Guest pages
-                    views, deletes and clears notes and the pixel wall.
+                    views, deletes and clears notes and the pixel wall, clears the chat.
                     portal_games.html is a captive page that links to them
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)

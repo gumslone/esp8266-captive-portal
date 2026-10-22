@@ -8,15 +8,17 @@ h1{font-size:22px;margin:6px 0}canvas{width:min(94vw,480px);height:min(94vw,480p
 <canvas id="v" width="32" height="32"></canvas><a href="/">&larr; back</a>
 <script>
 var P=['#ffffff','#000000','#7f7f7f','#c3c3c3','#dc2626','#f97316','#facc15','#a3e635','#16a34a','#06b6d4','#2563eb','#1e3a8a','#7c3aed','#ec4899','#92400e','#fcd5b5'];
-var V=document.getElementById('v'),x=V.getContext('2d'),b='',col=1,busy=0,lastI=-1;
+var V=document.getElementById('v'),x=V.getContext('2d'),b='',ver=0,col=1,busy=0,lastI=-1;
 document.getElementById('c').innerHTML=P.map(function(c,i){return '<i style="background:'+c+'" onclick="pick('+i+',this)"'+(i==1?' class="s"':'')+'></i>';}).join('');
 function pick(i,e){col=i;var o=document.querySelectorAll('#c i');for(var k=0;k<o.length;k++)o[k].className='';e.className='s';}
 function draw(){for(var i=0;i<1024;i++){x.fillStyle=P[parseInt(b[i]||'0',16)];x.fillRect(i%32,Math.floor(i/32),1,1);}}
-function req(q){busy++;var r=new XMLHttpRequest();r.open('GET','/api/px'+(q||''));
- r.onload=function(){busy--;if(r.status==200&&r.responseText.length>=1024&&!busy){b=r.responseText;draw();}};r.onerror=function(){busy--;};r.send();}
+// reply: "version\n" + the board only if it changed since our version
+function req(q){busy++;var r=new XMLHttpRequest();r.open('GET','/api/px?v='+ver+(q||''));
+ r.onload=function(){busy--;if(r.status!=200)return;var t=r.responseText,j=t.indexOf('\n');
+  if(t.length>j+1024&&!busy){ver=+t.slice(0,j);b=t.slice(j+1,j+1025);draw();}};r.onerror=function(){busy--;};r.send();}
 function paint(e){var r=V.getBoundingClientRect(),cx=Math.floor((e.clientX-r.left)*32/r.width),cy=Math.floor((e.clientY-r.top)*32/r.height);
  if(cx<0||cy<0||cx>31||cy>31)return;var i=cy*32+cx;if(i==lastI)return;lastI=i;
- var h=col.toString(16);b=b.slice(0,i)+h+b.slice(i+1);x.fillStyle=P[col];x.fillRect(cx,cy,1,1);req('?i='+i+'&c='+h);}
+ var h=col.toString(16);b=b.slice(0,i)+h+b.slice(i+1);x.fillStyle=P[col];x.fillRect(cx,cy,1,1);req('&i='+i+'&c='+h);}
 V.addEventListener('pointerdown',function(e){e.preventDefault();V.setPointerCapture(e.pointerId);lastI=-1;paint(e);});
 V.addEventListener('pointermove',function(e){if(e.buttons||e.pointerType=='touch')if(lastI>=0)paint(e);});
 V.addEventListener('pointerup',function(){lastI=-1;});
