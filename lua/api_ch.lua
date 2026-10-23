@@ -60,5 +60,5 @@ return function(S, r)
 			fd:close()
 		end
 	end
-	S.txt(k, table.concat(out))
+	S.txt(k, table.concat(out), r.cs)
 end

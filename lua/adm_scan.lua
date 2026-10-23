@@ -16,6 +16,6 @@ return function(S, x)
 			if ssid then out[#out + 1] = ssid .. "\t" .. rssi .. "\t" .. ch .. "\t" .. auth .. "\t" .. bssid end
 		end
 		x.cs.exec = false                           -- next "sent" closes the socket
-		pcall(function() k:send(table.concat(out, "\n") .. "\n") end)
+		pcall(S.send_big, k, x.cs, table.concat(out, "\n") .. "\n")   -- long with many networks
 	end)
 end

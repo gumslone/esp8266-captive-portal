@@ -57,13 +57,21 @@ function H.start(st, IP)
 	local HTML = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8" ..
 		"\r\nCache-Control: no-store, no-cache, must-revalidate\r\nConnection: close\r\n\r\n"
 
+	-- a long reply goes out in TPL_PIECE pieces (one now, the rest from the
+	-- "sent" handler): a single big send needs one contiguous network buffer of
+	-- its size, which a fragmented heap may not have (same as the blank page)
+	function S.send_big(k, cs, s)
+		if cs and #s > TPL_PIECE then cs.big, cs.bpos = s, TPL_PIECE + 1 end
+		k:send(cs and string.sub(s, 1, TPL_PIECE) or s)
+	end
 	function S.send_html(k, body) k:send(HTML .. body) end
-	function S.txt(k, body)                       -- plain-text reply (api_*.lua)
-		k:send("HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8" ..
+	-- plain-text reply (api_*.lua); pass cs for replies that can be long
+	function S.txt(k, body, cs)
+		S.send_big(k, cs, "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8" ..
 			"\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n" .. body)
 	end
 
-	-- send an HTML template, STREAMED: the "sent" handler reads ~1.4 KB of
+	-- send an HTML template, STREAMED: the "sent" handler reads ~0.7 KB of
 	-- whole lines at a time and substitutes {{TOKENS}} in just that piece, so a
 	-- page never sits in RAM whole (an ESP-01 rebooted rendering admin.html).
 	-- Table replacement inserts values literally and keeps unknown tokens.
@@ -132,7 +140,8 @@ function H.start(st, IP)
 		if node.heap() < LOW_HEAP then
 			collectgarbage()
 			if node.heap() < LOW_HEAP then
-				k:send("HTTP/1.1 503 Service Unavailable\r\nRetry-After: 2\r\nConnection: close\r\n\r\n")
+				k:send("HTTP/1.1 503 Service Unavailable\r\nRetry-After: 2\r\nContent-Type: text/html" ..
+					"\r\nConnection: close\r\n\r\n<meta http-equiv=\"refresh\" content=\"2\"><p>Busy - one moment...</p>")
 				return
 			end
 		end
@@ -216,7 +225,14 @@ function H.start(st, IP)
 
 	local function on_sent(k)
 		local cs = CS[k] or {}
-		if cs.exec then return end                   -- execute/scan close it themselves
+		if cs.exec then return end
+		if cs.big then                                 -- rest of a long reply (send_big)
+			local p = string.sub(cs.big, cs.bpos, cs.bpos + TPL_PIECE - 1)
+			cs.bpos = cs.bpos + TPL_PIECE
+			if cs.bpos > #cs.big then cs.big = nil end
+			k:send(p)
+			return
+		end                   -- execute/scan close it themselves
 		if cs.stream then
 			local fd = file.open(cs.stream, "r")
 			if fd then

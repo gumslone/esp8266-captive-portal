@@ -21,7 +21,8 @@ return function(S, x)
 		drain()
 		node.output(nil)
 		x.cs.exec = false                           -- next "sent" closes the socket
-		local ok = pcall(k.send, k, "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n" ..
+		-- send_big: the file list alone is ~1.4 KB (see cp_http)
+		local ok = pcall(S.send_big, k, x.cs, "HTTP/1.1 200 OK\r\nAccess-Control-Allow-Origin: *\r\n" ..
 			"Content-Type: text/plain\r\nConnection: close\r\n\r\n" .. table.concat(out))
 		if not ok then pcall(k.close, k) end
 	end)
