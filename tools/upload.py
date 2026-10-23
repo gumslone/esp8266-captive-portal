@@ -48,7 +48,7 @@ def src(name):
 
 CORE = ["init.lua", "config.lua", "captive_portal.lua", "cp_util.lua", "cp_cfg.lua", "cp_dns.lua",
         "cp_http.lua", "cp_login.lua", "cp_probe.lua", "adm_route.lua", "adm_page.lua", "adm_set.lua", "adm_file.lua",
-        "adm_exec.lua", "adm_scan.lua", "api_gb.lua", "api_px.lua", "api_mp.lua",
+        "adm_exec.lua", "adm_scan.lua", "adm_ls.lua", "api_gb.lua", "api_px.lua", "api_mp.lua",
         "api_bz.lua", "api_ch.lua", "api_dev.lua", "admin_login.html"]
 OPTIONAL = ["reset_button.lua", "sound.mp3", "audio.mp3"]
 GZIPPED = ["admin.html", "admin.js", "style.css", "portal_war.html"]
@@ -57,7 +57,7 @@ GZIPPED += sorted(os.path.basename(f) for f in glob.glob(os.path.join(ROOT, "htm
 NO_MINIFY = ["config.lua"]       # kept readable: settings you edit by hand
 # --lfs: these modules go into lfs.img (run from flash) instead of .lua/.lc files
 LFS_MODS = ["cp_util", "cp_cfg", "cp_dns", "cp_http", "cp_login", "cp_probe", "adm_route", "captive_portal",
-            "adm_page", "adm_set", "adm_file", "adm_exec", "adm_scan",
+            "adm_page", "adm_set", "adm_file", "adm_exec", "adm_scan", "adm_ls",
             "api_gb", "api_px", "api_mp", "api_bz", "api_ch", "api_dev"]
 LUAC_CROSS = os.environ.get("LUAC_CROSS") or os.path.join(ROOT, "tools", "luac.cross")
 

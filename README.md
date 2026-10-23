@@ -73,7 +73,9 @@ api_*.lua           guest APIs for the shared pages, one small module per featur
                     (gb guestbook, px pixel wall, mp 2-phone games, bz buzzer, ch chat,
                     dev LED colour + phone count); loaded per request like adm_*.lua
 adm_*.lua           admin actions, one small module loaded per admin request;
-                    adm_route picks it and checks the admin sign-in
+                    adm_route picks it and checks the admin sign-in; adm_ls is
+                    the file list (in small groups - one table of all files
+                    needed a 2 KB block and could reboot a busy board)
 login.html          guest login page (login mode)
 admin_login.html    admin password page
 admin.html          admin dashboard (static, sent gzipped; admin.js fills in values)

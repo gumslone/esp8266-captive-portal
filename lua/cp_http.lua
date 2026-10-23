@@ -57,20 +57,33 @@ function H.start(st, IP)
 	local HTML = "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8" ..
 		"\r\nCache-Control: no-store, no-cache, must-revalidate\r\nConnection: close\r\n\r\n"
 
-	-- a long reply goes out in TPL_PIECE pieces (one now, the rest from the
-	-- "sent" handler): a single big send needs one contiguous network buffer of
-	-- its size, which a fragmented heap may not have (same as the blank page)
-	function S.send_big(k, cs, s)
-		if cs and #s > TPL_PIECE then cs.big, cs.bpos = s, TPL_PIECE + 1 end
-		k:send(cs and string.sub(s, 1, TPL_PIECE) or s)
+	-- a long reply is kept as a LIST of small strings and sent in pieces of at
+	-- most TPL_PIECE bytes (one now, the rest from the "sent" handler): neither
+	-- the reply nor a send may need one big contiguous block - a fragmented
+	-- heap may not have one ("E:M 1424", then a PANIC rebooted the board)
+	local function next_piece(cs)
+		local t, i, o = cs.parts, cs.pi, cs.po
+		local p = t[i]
+		if not p then cs.parts = nil return nil end
+		if #p - o > TPL_PIECE then                  -- a big part: slice it
+			cs.po = o + TPL_PIECE
+			return string.sub(p, o + 1, o + TPL_PIECE)
+		end
+		local j, n = i + 1, #p - o                  -- small parts: join up to TPL_PIECE
+		while t[j] and n + #t[j] <= TPL_PIECE do n = n + #t[j]; j = j + 1 end
+		cs.pi, cs.po = j, 0
+		if o > 0 then p = string.sub(p, o + 1) end
+		if j == i + 1 then return p end
+		return p .. table.concat(t, "", i + 1, j - 1)
 	end
+	function S.send_parts(k, cs, parts)
+		cs.parts, cs.pi, cs.po = parts, 1, 0
+		k:send(next_piece(cs) or "")
+	end
+	S.TXT = "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8" ..
+		"\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n"
 	function S.send_html(k, body) k:send(HTML .. body) end
-	-- plain-text reply (api_*.lua); pass cs for replies that can be long
-	function S.txt(k, body, cs)
-		S.send_big(k, cs, "HTTP/1.1 200 OK\r\nContent-Type: text/plain; charset=utf-8" ..
-			"\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n" .. body)
-	end
-
+	function S.txt(k, body) k:send(S.TXT .. body) end   -- short plain-text reply
 	-- send an HTML template, STREAMED: the "sent" handler reads ~0.7 KB of
 	-- whole lines at a time and substitutes {{TOKENS}} in just that piece, so a
 	-- page never sits in RAM whole (an ESP-01 rebooted rendering admin.html).
@@ -226,12 +239,9 @@ function H.start(st, IP)
 	local function on_sent(k)
 		local cs = CS[k] or {}
 		if cs.exec then return end
-		if cs.big then                                 -- rest of a long reply (send_big)
-			local p = string.sub(cs.big, cs.bpos, cs.bpos + TPL_PIECE - 1)
-			cs.bpos = cs.bpos + TPL_PIECE
-			if cs.bpos > #cs.big then cs.big = nil end
-			k:send(p)
-			return
+		if cs.parts then                               -- rest of a long reply (send_parts)
+			local p = next_piece(cs)
+			if p then k:send(p) return end
 		end                   -- execute/scan close it themselves
 		if cs.stream then
 			local fd = file.open(cs.stream, "r")

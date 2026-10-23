@@ -3,7 +3,8 @@
 -- sign-in, then loads just that adm_*.lua. Returns false when the request is
 -- not an admin one after all, so cp_http carries on with it.
 local ADMIN_MOD = { admin_login = "adm_page", save_settings = "adm_set", set_page = "adm_set",
-	page_append = "adm_file", execute = "adm_exec", scan = "adm_scan", settings = "adm_page" }
+	page_append = "adm_file", execute = "adm_exec", scan = "adm_scan", settings = "adm_page",
+	files = "adm_ls" }
 
 return function(S, x)
 	local k = x.k

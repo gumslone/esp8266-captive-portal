@@ -9,13 +9,18 @@ return function(S, x)
 		return
 	end
 	x.cs.exec = true                                -- keep socket open until done
+	-- reply as a list of lines (send_parts: no big string), all under pcall -
+	-- an error in this callback would be "unprotected" and reboot the board
 	wifi.sta.getap(1, function(t)
-		local out = { "#\t" .. wifi.getchannel() }
-		for bssid, v in pairs(t or {}) do
-			local ssid, rssi, auth, ch = string.match(v, "^(.*),(-?%d+),(%d+),(%d+)$")
-			if ssid then out[#out + 1] = ssid .. "\t" .. rssi .. "\t" .. ch .. "\t" .. auth .. "\t" .. bssid end
-		end
-		x.cs.exec = false                           -- next "sent" closes the socket
-		pcall(S.send_big, k, x.cs, table.concat(out, "\n") .. "\n")   -- long with many networks
+		local ok = pcall(function()
+			local out = { "#\t" .. wifi.getchannel() .. "\n" }
+			for bssid, v in pairs(t or {}) do
+				local ssid, rssi, auth, ch = string.match(v, "^(.*),(-?%d+),(%d+),(%d+)$")
+				if ssid then out[#out + 1] = ssid .. "\t" .. rssi .. "\t" .. ch .. "\t" .. auth .. "\t" .. bssid .. "\n" end
+			end
+			x.cs.exec = false                       -- next "sent" closes the socket
+			S.send_parts(k, x.cs, out)
+		end)
+		if not ok then x.cs.exec = false; pcall(k.close, k) end
 	end)
 end

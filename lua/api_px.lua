@@ -21,7 +21,9 @@ return function(S, r)
 		S.px_v = S.px_v + 1
 	end
 	if tonumber(G.v or "") == S.px_v then S.txt(k, S.px_v .. "\n") return end
-	local fd, b = file.open("pixels.txt", "r"), nil
-	if fd then b = fd:read(PX); fd:close() end
-	S.txt(k, S.px_v .. "\n" .. (b or string.rep("0", PX)), r.cs)
+	-- the board in two 512-byte halves: no 1 KB string (see send_parts)
+	local parts, fd = { S.TXT .. S.px_v .. "\n" }, file.open("pixels.txt", "r")
+	for h = 2, 3 do parts[h] = fd and fd:read(PX / 2) or string.rep("0", PX / 2) end
+	if fd then fd:close() end
+	S.send_parts(k, r.cs, parts)
 end

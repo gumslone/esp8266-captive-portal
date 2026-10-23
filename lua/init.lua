@@ -34,7 +34,7 @@ boot:alarm(2000, tmr.ALARM_SINGLE, function()
 	-- .lc and keeps the .lua (run/require then fall back to it).
 	for _, m in ipairs({ "cp_util", "cp_cfg", "cp_dns", "cp_http", "cp_login", "cp_probe", "captive_portal",
 		"adm_route",
-		"adm_page", "adm_set", "adm_file", "adm_exec", "adm_scan",
+		"adm_page", "adm_set", "adm_file", "adm_exec", "adm_scan", "adm_ls",
 		"api_gb", "api_px", "api_mp", "api_bz", "api_ch", "api_dev" }) do
 		if not (lfs and type(lfs(m)) == "function") and file.exists(m .. ".lua") then
 			collectgarbage()

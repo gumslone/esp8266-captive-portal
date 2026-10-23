@@ -38,10 +38,14 @@ function runCmd(){var c=id('cmd').value.trim();if(c)exec(c);}
 function restart(){if(confirm('Restart the device?')){id('msg').innerHTML='Restarting...';
   execq('tmr.create():alarm(500,tmr.ALARM_SINGLE,node.restart)',function(){id('msg').innerHTML='Restarting... reload this page in a few seconds.';});}}
 function lq(s){return "'"+s.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"'";}
-function renf(n){var t=prompt('Rename '+n+' to:',n);if(t&&t!=n)exec('=file.rename('+lq(n)+','+lq(t)+')',flist);}
-function delf(n){if(confirm('Delete '+n+'? This cannot be undone.'))exec("file.remove('"+n+"')",flist);}
+function renf(n){var t=prompt('Rename '+n+' to:',n);if(t&&t!=n)exec('=file.rename('+lq(n)+','+lq(t)+')',changed);}
+function delf(n){if(confirm('Delete '+n+'? This cannot be undone.'))exec("file.remove('"+n+"')",changed);}
 function lnk(f,n,l){return '<a href="javascript:;" onclick="'+f+'(\''+n+'\')">'+l+'</a>';}
-function flist(){req('/x?action=execute&execute_command='+encodeURIComponent("for k,v in pairs(file.list()) do print(k..\"\t\"..v) end print(\"#\t\"..file.fsinfo())")+'&rnd='+Math.random(),function(st,t){
+// full file list: only on request (Show files), from action=files (adm_ls.lua
+// lists in small groups - one file.list() table of all files PANIC-rebooted it)
+var showFiles=false;
+function showFl(){showFiles=true;id('fl').innerHTML='Loading...';flist();}
+function flist(){if(!showFiles)return;req('/x?action=files&rnd='+Math.random(),function(st,t){
   if(st!=200){id('fl').innerHTML='File list failed ('+st+') - sign in again.';return;}
   var r=(t||'').split('\n'),h='<table><tr><th>File</th><th>Size</th><th></th></tr>',n=0,free='';
   for(var i=0;i<r.length;i++){var p=r[i].split('\t');if(p.length<2)continue;
@@ -54,20 +58,24 @@ function flist(){req('/x?action=execute&execute_command='+encodeURIComponent("fo
     // click the name: editable files open in the editor, binary files in a new tab
     var nm=ed?lnk('editf',fn,esc(fn)):'<a href="/'+fn+'" target="_blank">'+esc(fn)+'</a>';
     h+='<tr><td>'+nm+'</td><td>'+esc(sz)+'</td><td>'+a.join(' | ')+'</td></tr>';}
-  h+='</table><p>'+n+' file(s)'+(free?', '+esc(free)+' bytes free':'')+'</p>';id('fl').innerHTML=h;
-  var names=r.map(function(l){return l.split('\t')[0].trim();});
+  h+='</table><p>'+n+' file(s)'+(free?', '+esc(free)+' bytes free':'')+'</p>';id('fl').innerHTML=h;});}
+// captive page / login form pickers: just the portal_* / login* names
+// (file.list with a pattern - ~11 names, not the whole flash)
+function pickers(cb){execq("for k in pairs(file.list('^portal_')) do print(k) end for k in pairs(file.list('^login')) do print(k) end",function(t){
+  var names=(t||'').split('\n').map(function(l){return l.trim();}).filter(function(l){return /\.html(\.gz)?$/.test(l);});
   // portal_x.html.gz (pre-gzipped page) is listed as portal_x.html
-  var pages=names.map(function(f){return f.replace(/\.gz$/,'');}).filter(function(f,i,a){return /^portal_.*\.html$/.test(f)&&a.indexOf(f)==i;});
+  var pages=names.map(function(f){return f.replace(/\.gz$/,'');}).filter(function(f,i,a){return /^portal_/.test(f)&&a.indexOf(f)==i;});
   fillSel('pg',pages);
-  fillSel('lg',names.filter(function(f){return /^login.*\.html$/.test(f);}));});}
-// captive page / login form pickers: options come from the file list (no extra request)
+  fillSel('lg',names.filter(function(f){return /^login/.test(f);}));if(cb)cb();});}
+// after an upload/rename/delete: pickers, then the file list - one request at a time
+function changed(){pickers(flist);}
 function fillSel(sid,names){var s=id(sid),act=s.getAttribute('data-active'),cur=s.value||act;s.innerHTML='';
   names.sort();for(var i=0;i<names.length;i++){var o=document.createElement('option');o.value=names[i];
     o.text=names[i]+(names[i]==act?'  (active)':'');if(names[i]==cur)o.selected=true;s.add(o);}}
 var KIND={page:['pg','pgm','Active page: '],login:['lg','lgm','Active login form: ']};
 function setPage(kind){var k=KIND[kind],n=id(k[0]).value;if(!n)return;
   req('/x?action=set_page&kind='+kind+'&name='+encodeURIComponent(n)+'&rnd='+Math.random(),function(st){
-    if(st==200){id(k[0]).setAttribute('data-active',n);id(k[1]).innerHTML=k[2]+esc(n);flist();}
+    if(st==200){id(k[0]).setAttribute('data-active',n);id(k[1]).innerHTML=k[2]+esc(n);pickers();}
     else id(k[1]).innerHTML='Could not activate ('+st+')';});}
 function ename(){return encodeURIComponent(id('en').value.trim());}
 var _ld=null; // name of the file currently loaded in the editor
@@ -86,7 +94,7 @@ function sendLine(){var first=(_c===0)?'&first=1':'';
     _c++;if(_c<_t){id('pm').innerHTML='Line '+_c+'/'+_t;sendLine();}else{id('pm').innerHTML='Saved ('+_t+' lines).';}});}
 function uploadFile(){var f=id('f').files[0],n=id('fn').value.trim();if(!f||!n){alert('Choose a file and a name');return;}
   id('um').innerHTML='Uploading...';var x=new XMLHttpRequest();
-  x.onreadystatechange=function(){if(this.readyState==4){id('um').innerHTML=(this.status==200?'Uploaded '+esc(n):'Upload failed ('+this.status+')');flist();}};
+  x.onreadystatechange=function(){if(this.readyState==4){id('um').innerHTML=(this.status==200?'Uploaded '+esc(n):'Upload failed ('+this.status+')');changed();}};
   x.open('POST','/admin/upload?name='+encodeURIComponent(n),true);x.send(f);}
 // editor loads on demand (Load / edit); file list waits for the page's own
 // requests to finish, so the ESP never juggles several connections at once
@@ -101,7 +109,7 @@ function loadSettings(){req('/x?action=settings&rnd='+Math.random(),function(st,
   var tx=id('tx');if(v.tx){if(!tx.querySelector('option[value="'+v.tx+'"]')){var o=document.createElement('option');o.value=v.tx;o.text='Custom ('+v.tx+')';tx.add(o);}tx.value=v.tx;}
   id('pg').setAttribute('data-active',v.page||'');id('lg').setAttribute('data-active',v.login||'');
   if(!id('en').value)id('en').value=v.page||'';
-  flist();});}
+  pickers();});}
 window.onload=loadSettings;
 // guest pages: guestbook (one note per line, "name|message") and the pixel wall
 function viewGb(){req('/api/gb?rnd='+Math.random(),function(st,t){var d=id('gb');d.innerHTML='';

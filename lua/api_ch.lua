@@ -49,7 +49,7 @@ return function(S, r)
 	end
 	local since = tonumber(G.s or "") or S.ch_no          -- just opened: nothing old
 	if since > S.ch_no then since = 0 end                 -- board restarted: send all
-	local out = { S.ch_no .. "\n" }
+	local out = { S.TXT .. S.ch_no .. "\n" }       -- reply as a list of lines (send_parts)
 	if since < S.ch_no then
 		local fd = file.open("chat.txt", "r")
 		if fd then
@@ -60,5 +60,5 @@ return function(S, r)
 			fd:close()
 		end
 	end
-	S.txt(k, table.concat(out), r.cs)
+	S.send_parts(k, r.cs, out)
 end
