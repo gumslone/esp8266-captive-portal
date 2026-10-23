@@ -17,6 +17,7 @@ function C.load()
 		password = "changeme", admin_password = "admin-changeme", require_login = false,
 		page = "portal_games.html",  -- active captive page (admin picks it)
 		login = "login.html",        -- active guest login form (admin picks it)
+		welcome = false,             -- open mode: "welcome.html" = first page in the sign-in sheet (admin switches it)
 		txpower = 82,                -- radio power 1..82 in 0.25 dBm (82 = max range)
 		led = 4,                     -- status LED pin (D4/GPIO2), false = off
 	}
@@ -35,6 +36,7 @@ function C.load()
 		s.led_low   = config.portal_led_active_low ~= false
 		s.led_color = config.portal_led_color
 		s.led_power = config.portal_led_power
+		if config.portal_welcome ~= nil then s.welcome = config.portal_welcome end
 		config = nil                                  -- only read here: free it
 	end
 	if file.exists("portal_config.lua") then
@@ -49,6 +51,7 @@ function C.load()
 			s.txpower     = portal.txpower  or s.txpower
 			s.admin_password = portal.admin_password or s.admin_password   -- set in admin
 			if portal.require_login ~= nil then s.require_login = portal.require_login end
+			if portal.welcome ~= nil then s.welcome = portal.welcome end
 			portal = nil
 		end
 	end
@@ -67,6 +70,7 @@ function C.save(s)
 	fd:write("portal.txpower = " .. (tonumber(s.txpower) or 82) .. "\n")
 	fd:write("portal.admin_password = " .. C.lua_q(s.admin_password) .. "\n")
 	fd:write("portal.require_login = " .. (s.require_login and "true" or "false") .. "\n")
+	fd:write("portal.welcome = " .. (s.welcome and C.lua_q(s.welcome) or "false") .. "\n")
 	if s.ap_password ~= nil and string.len(s.ap_password) >= 8 then
 		fd:write("portal.ap_password = " .. C.lua_q(s.ap_password) .. "\n")
 	else

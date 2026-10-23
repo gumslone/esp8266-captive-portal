@@ -28,6 +28,10 @@ local LOW_HEAP = 5120      -- free heap (after a GC) below which requests get "5
 
 function H.start(st, IP)
 	local allowed = {}       -- allowed[ip]  = true : guest passed the gate
+	-- open mode with a welcome page: phones that haven't tapped through see it
+	-- (for every URL, so it is what the sign-in sheet shows); its button
+	-- (action=go) lets them through - like a login, without a password
+	local WELCOME = not st.require_login and st.welcome and file.exists(st.welcome) and st.welcome
 
 	-- files a non-admin may fetch directly; everything else (config.lua,
 	-- *.lua, portal_config.lua ...) is NOT served to guests.
@@ -194,6 +198,14 @@ function H.start(st, IP)
 			run("cp_login", S, x)
 			return
 		end
+		-- welcome page's "Open in browser" (open mode only): through, then the
+		-- captive page. One request: it runs in the browser window it opens
+		if act == "go" and WELCOME then
+			if ip then allowed[ip] = true end
+			if portal_blink then portal_blink() end
+			S.client_page(k, cs)
+			return
+		end
 
 		-- shared guest pages (guestbook, pixel wall, 2-player, buzzer, LED):
 		-- same gate as the games; only that feature's api_*.lua is loaded,
@@ -226,13 +238,16 @@ function H.start(st, IP)
 			return
 		end
 
-		-- logged-in guest: cp_probe answers the OS connectivity checks with
-		-- "online", so the phone closes its sign-in sheet (before login they
-		-- get the portal/login page, which is what makes the sheet appear)
-		if st.require_login and ip and allowed[ip] and run("cp_probe", S, x) then return end
+		-- guest through the gate (login or welcome): cp_probe answers the OS
+		-- connectivity checks with "online", so the phone closes its sign-in
+		-- sheet (before that they get the login/welcome page, which is what
+		-- makes the sheet appear)
+		if (st.require_login or WELCOME) and ip and allowed[ip] and run("cp_probe", S, x) then return end
 
 		-- "/" and anything else (incl. OS captive-probe URLs) --------------
-		if (not st.require_login) or (ip and allowed[ip]) then S.client_page(k, cs)
+		if WELCOME and not (ip and allowed[ip]) then
+			S.send_page(k, cs, WELCOME, { SSID = U.he(st.ssid), IP = IP })
+		elseif (not st.require_login) or (ip and allowed[ip]) then S.client_page(k, cs)
 		else S.login_form(k, cs, "") end
 	end
 

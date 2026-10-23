@@ -23,6 +23,7 @@ return function(S, x)
 		password = G.p or st.password,
 		admin_password = (G.np and #G.np > 0) and G.np or st.admin_password,   -- blank = keep
 		require_login = (G.rl == "1"),
+		welcome = (G.wl == "1") and "welcome.html" or false,
 		page = st.page, login = st.login,
 		txpower = math.max(1, math.min(82, tonumber(G.tx) or st.txpower)),
 	}

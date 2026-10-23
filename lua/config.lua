@@ -9,6 +9,10 @@ config.portal_admin_password = "admin-changeme"  -- ADMIN password (change this!
 config.portal_require_login  = false             -- true = guests log in first; false = open, page shown immediately
 config.portal_page           = "portal_games.html" -- captive page shown to guests (admin can switch)
 config.portal_login          = "login.html"       -- guest login form (admin can switch)
+config.portal_welcome        = false              -- open mode: "welcome.html" = first page in the
+                                                  -- phone's sign-in sheet (the address + "Open in
+                                                  -- browser"); false = captive page right away.
+                                                  -- The admin page switches it.
 config.portal_txpower        = 82                 -- signal strength 1..82 (x0.25 dBm): 82 full, 40 one room
 -- status LED: blinks when a phone joins and on guest login.
 -- pins are NodeMCU indices: 4 = D4/GPIO2, 6 = GPIO12, 2 = GPIO4, 10 = TX/GPIO1.

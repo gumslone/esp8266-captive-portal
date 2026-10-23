@@ -1,0 +1,23 @@
+<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>{{SSID}}</title>
+<style>body{font-family:system-ui,Arial,sans-serif;background:#0f172a;color:#e2e8f0;margin:0;text-align:center;padding:28px 16px}
+h1{font-size:23px;margin:0 0 6px}p{color:#94a3b8;margin:8px 0}#u{font-size:26px;font-weight:700;color:#fff;background:#1e293b;border:0;border-radius:12px;
+padding:12px;width:100%;max-width:320px;text-align:center;box-sizing:border-box}a.b,button{display:block;max-width:320px;margin:12px auto;padding:14px;border:0;
+border-radius:12px;background:#2563eb;color:#fff;font-size:17px;text-decoration:none;box-sizing:border-box;width:100%}button{background:#334155}
+#h{font-size:14px;min-height:40px}a.s{color:#94a3b8;font-size:14px}</style></head><body>
+<h1>Connected to {{SSID}}</h1><p>Games, chat and more - no internet needed. Open this address in your browser:</p>
+<input id="u" value="http://{{IP}}" readonly onclick="this.select()">
+<button onclick="cp()" id="c">Copy address</button>
+<!-- one request does both: lets this phone through, then shows the games (in the window it opens) -->
+<a class="b" id="o" href="http://{{IP}}/?action=go" target="_blank">Open in browser</a>
+<a class="b" id="ch" href="intent://{{IP}}/?action=go#Intent;scheme=http;end" style="display:none">Open in Chrome</a>
+<p id="h"></p><a class="s" href="/?action=go">or play right here</a>
+<script>
+var ua=navigator.userAgent,h=document.getElementById('h');
+if(/iPhone|iPad|iPod/.test(ua))h.textContent='iPhone: tap the button, then "Done" at the top, and open Safari at the address above.';
+else if(/Android/.test(ua)){document.getElementById('ch').style.display='block';
+ h.textContent='If no browser opens: close this window and type the address in Chrome.';}
+function cp(){var u=document.getElementById('u'),b=document.getElementById('c');u.select();
+ try{navigator.clipboard.writeText(u.value).then(function(){b.textContent='Copied!';},function(){document.execCommand('copy');b.textContent='Copied!';});}
+ catch(e){try{document.execCommand('copy');b.textContent='Copied!';}catch(e2){b.textContent='Select the address and copy it';}}}
+</script></body></html>

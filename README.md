@@ -103,6 +103,10 @@ game_*.html         small offline games: tic-tac-toe, 4 in a row, memory, snake,
                     views, deletes and clears notes and the pixel wall, clears the chat.
                     portal_games.html is the default captive page: it links to them
                     (open mode by default - no login; turn login on in /admin)
+welcome.html        optional (admin: "Welcome page first", open mode): the first page
+                    in the phone's sign-in sheet - the address, Copy, "Open in
+                    browser"; that tap lets the phone through (OS checks then get
+                    "online", so the sheet can close) and opens the captive page
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)
 ```

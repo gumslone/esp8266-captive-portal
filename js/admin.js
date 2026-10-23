@@ -105,7 +105,7 @@ function loadSettings(){req('/x?action=settings&rnd='+Math.random(),function(st,
   var v={},r=(t||'').split('\n');
   for(var i=0;i<r.length;i++){var j=r[i].indexOf('=');if(j>0)v[r[i].slice(0,j)]=decodeURIComponent(r[i].slice(j+1));}
   document.title='Admin - '+(v.ssid||'');id('s').value=v.ssid||'';id('w').value=v.wpa||'';
-  id('u').value=v.user||'';id('p').value=v.pass||'';id('rl').checked=v.rl=='1';
+  id('u').value=v.user||'';id('p').value=v.pass||'';id('rl').checked=v.rl=='1';id('wl').checked=v.wl=='1';
   var tx=id('tx');if(v.tx){if(!tx.querySelector('option[value="'+v.tx+'"]')){var o=document.createElement('option');o.value=v.tx;o.text='Custom ('+v.tx+')';tx.add(o);}tx.value=v.tx;}
   id('pg').setAttribute('data-active',v.page||'');id('lg').setAttribute('data-active',v.login||'');
   if(!id('en').value)id('en').value=v.page||'';

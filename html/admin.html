@@ -6,6 +6,7 @@
 <label>Network name (SSID)</label><input name="s" id="s">
 <label>WPA2 key (8+ chars, blank = open)</label><input name="w" id="w">
 <div class="row"><label><input type="checkbox" name="rl" id="rl" value="1"> Require login (uncheck = open splash)</label></div>
+<div class="row"><label><input type="checkbox" name="wl" id="wl" value="1"> Welcome page first (open mode): the sign-in sheet shows the address and "Open in browser"</label></div>
 <label>Guest username</label><input name="u" id="u">
 <label>Guest password</label><input name="p" id="p">
 <label>New admin password (blank = keep current)</label><input name="np" type="password" autocomplete="new-password">
@@ -81,4 +82,4 @@ To restore (e.g. after re-flashing): upload the file below as <b>portal_config.l
 <button type="button" onclick="runCmd()">Run</button>
 <button type="button" onclick="restart()" style="background:#b42318">Restart device</button>
 <div id="msg" style="font-size:12px;color:#98a2b3"></div>
-<script src="./admin.js?v=3"></script></div></body></html>
+<script src="./admin.js?v=4"></script></div></body></html>
