@@ -6,8 +6,8 @@ config.portal_ap_password    = nil              -- WPA2 key (>=8 chars) or nil =
 config.portal_user           = "guest"           -- guest login username (login mode)
 config.portal_password       = "changeme"        -- guest login password (login mode)
 config.portal_admin_password = "admin-changeme"  -- ADMIN password (change this!)
-config.portal_require_login  = true              -- false = open splash shown immediately
-config.portal_page           = "portal_page.html" -- captive page shown to guests (admin can switch)
+config.portal_require_login  = false             -- true = guests log in first; false = open, page shown immediately
+config.portal_page           = "portal_games.html" -- captive page shown to guests (admin can switch)
 config.portal_login          = "login.html"       -- guest login form (admin can switch)
 config.portal_txpower        = 82                 -- signal strength 1..82 (x0.25 dBm): 82 full, 40 one room
 -- status LED: blinks when a phone joins and on guest login.

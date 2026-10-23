@@ -79,7 +79,8 @@ admin_login.html    admin password page
 admin.html          admin dashboard (static, sent gzipped; admin.js fills in values)
 admin.js            admin dashboard logic (streamed asset)
 style.css           admin stylesheet (streamed asset)
-portal_page.html    default captive page shown to clients (editable; {{SSID}} token)
+portal_page.html    simple captive page (editable; {{SSID}} token); fallback if the
+                    active page is missing
 portal_*.html       more captive page designs: minimal, info, event, offline, war;
                     the admin picks the active one (Captive page section).
                     portal_war.html is uploaded gzipped (portal_war.html.gz) and
@@ -98,7 +99,8 @@ game_*.html         small offline games: tic-tac-toe, 4 in a row, memory, snake,
                     connected. Sent gzipped, open to guests after login.
                     Guestbook: one note per phone per 30 s. Admin > Guest pages
                     views, deletes and clears notes and the pixel wall, clears the chat.
-                    portal_games.html is a captive page that links to them
+                    portal_games.html is the default captive page: it links to them
+                    (open mode by default - no login; turn login on in /admin)
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)
 ```
@@ -124,8 +126,8 @@ config.portal_ap_password    = nil              -- WPA2 key (>=8 chars) or nil =
 config.portal_user           = "guest"
 config.portal_password       = "changeme"
 config.portal_admin_password = "admin-changeme" -- CHANGE THIS
-config.portal_require_login   = true            -- false = open splash
-config.portal_page            = "portal_page.html" -- active captive page
+config.portal_require_login   = false           -- true = guest login first
+config.portal_page            = "portal_games.html" -- active captive page
 config.portal_login           = "login.html"       -- active guest login form
 config.portal_txpower         = 82                 -- signal strength 1..82 (x0.25 dBm)
 config.portal_led             = 4                  -- status LED pin: 4 = D4/GPIO2, 10 = TX (ESP-01), false = off

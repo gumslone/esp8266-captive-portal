@@ -14,8 +14,8 @@ end
 function C.load()
 	local s = {
 		ssid = "Guest-WiFi", ap_password = nil, user = "guest",
-		password = "changeme", admin_password = "admin-changeme", require_login = true,
-		page = "portal_page.html",   -- active captive page (admin picks it)
+		password = "changeme", admin_password = "admin-changeme", require_login = false,
+		page = "portal_games.html",  -- active captive page (admin picks it)
 		login = "login.html",        -- active guest login form (admin picks it)
 		txpower = 82,                -- radio power 1..82 in 0.25 dBm (82 = max range)
 		led = 4,                     -- status LED pin (D4/GPIO2), false = off
