@@ -56,10 +56,12 @@ local function led_setup()
 		-- send "off" a few times so a clean frame lands.
 		on  = function() send(lit) end
 		off = function() for _ = 1, 3 do send(dark) end end
-		-- guests' LED page (/api/led): show a colour until the next blink
+		-- guests' LED page (/api/led): show a colour until the next blink. Sent
+		-- 3 times like "off": with WiFi busy a single frame was sometimes lost
+		-- (LED kept the old colour) or garbled (wrong colour)
 		function portal_led(r, g, b)
 			local f = string.char(g, r, b)
-			for _ = 1, (r + g + b == 0) and 3 or 1 do send(f) end
+			for _ = 1, 3 do send(f) end
 		end
 	elseif st.led then                         -- plain LED on a GPIO pin
 		local pin = st.led
