@@ -47,7 +47,9 @@ function H.start(st, IP)
 
 	local CHUNK     = 1024 -- bytes per streamed file piece (bigger chunks for .mp3
 	                       -- made audio stop loading partway: too much heap)
-	local TPL_PIECE = 1400 -- template piece (~one TCP segment): most pages in 1-2 sends
+	local TPL_PIECE = 700  -- template piece: every send needs one contiguous network
+	                       -- buffer of about its size. 1400 (~one TCP segment) failed
+	                       -- with "E:M 1584" on a fragmented heap - a 2 KB page blank
 
 	-- shared with the adm_*.lua modules
 	-- admin_ok[ip]: admin signed in; allowed[ip]: guest passed the gate

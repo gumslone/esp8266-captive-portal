@@ -5,10 +5,11 @@
 -- values you set (stores nothing, imitates nothing); open mode shows the
 -- captive page immediately. The ESP8266 is an AP, not a NAT router, so this
 -- gates access to THIS device's pages - it does not forward internet.
--- Lua GC: a full collection whenever free heap drops below 6 KB (a negative
+-- Lua GC: a full collection whenever free heap drops below 8 KB (a negative
 -- limit means "keep this much free"), plus one when an allocation fails -
 -- not just when the incremental GC gets round to it. Supported since 2.2.1.
-if node.egc then pcall(node.egc.setmode, node.egc.ON_MEM_LIMIT + node.egc.ON_ALLOC_FAILURE, -6144) end
+-- The headroom is for the network stack: its buffers can't trigger a Lua GC.
+if node.egc then pcall(node.egc.setmode, node.egc.ON_MEM_LIMIT + node.egc.ON_ALLOC_FAILURE, -8192) end
 
 local st = require("cp_cfg").load()
 package.loaded["cp_cfg"] = nil                 -- boot-only: free it
