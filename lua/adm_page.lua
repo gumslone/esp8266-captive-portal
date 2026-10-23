@@ -24,7 +24,6 @@ return function(S, x)
 		k:send("HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nCache-Control: no-store\r\nConnection: close\r\n\r\n" ..
 			"ssid=" .. enc(st.ssid) .. "\nwpa=" .. enc(st.ap_password) .. "\nuser=" .. enc(st.user) ..
 			"\npass=" .. enc(st.password) .. "\nrl=" .. (st.require_login and "1" or "0") ..
-			"\nwl=" .. (st.welcome and "1" or "0") ..
 			"\npage=" .. enc(st.page) .. "\nlogin=" .. enc(st.login) .. "\ntx=" .. (st.txpower or 82) .. "\n")
 	else
 		S.send_file(k, x.cs, "admin.html")

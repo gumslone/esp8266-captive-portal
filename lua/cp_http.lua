@@ -28,10 +28,12 @@ local LOW_HEAP = 5120      -- free heap (after a GC) below which requests get "5
 
 function H.start(st, IP)
 	local allowed = {}       -- allowed[ip]  = true : guest passed the gate
-	-- open mode with a welcome page: phones that haven't tapped through see it
-	-- (for every URL, so it is what the sign-in sheet shows); its button
-	-- (action=go) lets them through - like a login, without a password
-	local WELCOME = not st.require_login and st.welcome and file.exists(st.welcome) and st.welcome
+	-- portal_welcome*.html picked as the captive page is a step in front of the
+	-- games: phones not through see it (so it is what the sign-in sheet shows),
+	-- its button (action=go) lets them through, and through phones get NEXT.
+	-- Checked per request: the admin can switch the page without a restart.
+	local NEXT = "portal_games.html"
+	local function welcome() return string.find(st.page, "^portal_welcome") ~= nil end
 
 	-- files a non-admin may fetch directly; everything else (config.lua,
 	-- *.lua, portal_config.lua ...) is NOT served to guests.
@@ -118,11 +120,11 @@ function H.start(st, IP)
 
 	-- the captive page shown to a client: the one the admin made active. A
 	-- pre-gzipped portal_x.html.gz is sent as-is (smaller, faster; no tokens)
-	function S.client_page(k, cs)
-		local pg = st.page
+	function S.client_page(k, cs, pg)
+		pg = pg or st.page
 		if not (file.exists(pg) or file.exists(pg .. ".gz")) then pg = "portal_page.html" end
 		if file.exists(pg .. ".gz") then S.send_file(k, cs, pg)
-		else S.send_page(k, cs, pg, { SSID = U.he(st.ssid) }) end
+		else S.send_page(k, cs, pg, { SSID = U.he(st.ssid), IP = IP }) end
 	end
 	function S.login_form(k, cs, err)
 		local lg = file.exists(st.login) and st.login or "login.html"
@@ -198,12 +200,15 @@ function H.start(st, IP)
 			run("cp_login", S, x)
 			return
 		end
-		-- welcome page's "Open in browser" (open mode only): through, then the
-		-- captive page. One request: it runs in the browser window it opens
-		if act == "go" and WELCOME then
-			if ip then allowed[ip] = true end
-			if portal_blink then portal_blink() end
-			S.client_page(k, cs)
+		-- welcome page's "Open in browser": through (open mode; in login mode
+		-- only after the login), then the games. One request: it runs in the
+		-- browser window it opens
+		if act == "go" and welcome() then
+			if ip and not st.require_login and not allowed[ip] then
+				allowed[ip] = true
+				if portal_blink then portal_blink() end
+			end
+			if ip and allowed[ip] then S.client_page(k, cs, NEXT) else S.login_form(k, cs, "") end
 			return
 		end
 
@@ -242,12 +247,12 @@ function H.start(st, IP)
 		-- connectivity checks with "online", so the phone closes its sign-in
 		-- sheet (before that they get the login/welcome page, which is what
 		-- makes the sheet appear)
-		if (st.require_login or WELCOME) and ip and allowed[ip] and run("cp_probe", S, x) then return end
+		local through = ip and allowed[ip]
+		if (st.require_login or welcome()) and through and run("cp_probe", S, x) then return end
 
 		-- "/" and anything else (incl. OS captive-probe URLs) --------------
-		if WELCOME and not (ip and allowed[ip]) then
-			S.send_page(k, cs, WELCOME, { SSID = U.he(st.ssid), IP = IP })
-		elseif (not st.require_login) or (ip and allowed[ip]) then S.client_page(k, cs)
+		if through and welcome() then S.client_page(k, cs, NEXT)
+		elseif (not st.require_login) or through then S.client_page(k, cs)
 		else S.login_form(k, cs, "") end
 	end
 

@@ -83,7 +83,11 @@ admin.js            admin dashboard logic (streamed asset)
 style.css           admin stylesheet (streamed asset)
 portal_page.html    simple captive page (editable; {{SSID}} token); fallback if the
                     active page is missing
-portal_*.html       more captive page designs: minimal, info, event, offline, war;
+portal_*.html       more captive page designs: minimal, info, event, offline, war,
+                    welcome. portal_welcome.html = the address, Copy and "Open in
+                    browser" in the phone's sign-in sheet; that tap lets the phone
+                    through (its OS checks then get "online", so the sheet can
+                    close) and opens the games menu, which it gets from then on;
                     the admin picks the active one (Captive page section).
                     portal_war.html is uploaded gzipped (portal_war.html.gz) and
                     plays assets/audio.mp3 (uploaded as audio.mp3)
@@ -103,10 +107,6 @@ game_*.html         small offline games: tic-tac-toe, 4 in a row, memory, snake,
                     views, deletes and clears notes and the pixel wall, clears the chat.
                     portal_games.html is the default captive page: it links to them
                     (open mode by default - no login; turn login on in /admin)
-welcome.html        optional (admin: "Welcome page first", open mode): the first page
-                    in the phone's sign-in sheet - the address, Copy, "Open in
-                    browser"; that tap lets the phone through (OS checks then get
-                    "online", so the sheet can close) and opens the captive page
 login_*.html        more guest login designs: minimal, dark, terms (checkbox);
                     the admin picks the active one (Login form section)
 ```
